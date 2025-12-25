@@ -101,9 +101,9 @@ export default function Header({
                           <span className="text-sm font-medium">Available Credits</span>
                         </div>
                         <p className="text-3xl font-bold">{credits}</p>
-                        <p className="text-white/80 text-xs mt-1">
+                        {/* <p className="text-white/80 text-xs mt-1">
                           Avg cost: 2.5 credits per verification
-                        </p>
+                        </p> */}
                       </div>
                       <div className="p-3">
                         <Link to="/wallet" onClick={() => setCreditDropdownOpen(false)}>

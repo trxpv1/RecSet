@@ -8,8 +8,17 @@
   external_node_modules = ["express"]
   node_bundler = "esbuild"
   
+# 1. Handle API requests first
 [[redirects]]
   force = true
   from = "/api/*"
   status = 200
   to = "/.netlify/functions/api/:splat"
+
+# 2. Handle SPA routing (new rule)
+# This redirects all other routes to index.html so your JS router can take over
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+

@@ -21,134 +21,221 @@ export default function Refund() {
           {/* Header */}
           <div className="space-y-4 border-b border-border pb-8">
             <h1 className="text-4xl font-heading font-bold text-foreground">
-              Refund Policy
+              Refund & Cancellation Policy
             </h1>
+            <p className="text-xl text-muted-foreground">(Wallet-Based Model)</p>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-muted-foreground">
-              <p>Effective Date: January 1, 2024</p>
-              <p>Last Updated: January 1, 2024</p>
+              <p>Last Updated: December 24, 2025</p>
             </div>
+            <p className="text-muted-foreground leading-relaxed">
+              This Refund & Cancellation Policy ("Policy") governs all payments, wallet credit purchases, and monetary transactions made on RecordSetu ("Platform", "Services").
+            </p>
+            <p className="text-muted-foreground font-semibold">
+              By purchasing wallet credits or using paid features on RecordSetu, you agree to this Policy in full.
+            </p>
           </div>
 
           {/* Content */}
           <section className="space-y-6">
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                1. Agency Subscription & Credit Purchase
-              </h2>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Credit purchase is final once activated on the platform.</li>
-                <li>Credits are prepaid usage units deducted per search transaction.</li>
-                <li>No refund is provided after credits have been consumed.</li>
-                <li>All credit purchases are non-cancellable after activation.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                2. Refund Eligibility
+                1. NATURE OF SERVICES
               </h2>
               <p className="text-muted-foreground mb-3">
-                Refunds are permitted <span className="font-semibold">only</span> in the following circumstances:
+                RecordSetu operates on a <span className="font-semibold">prepaid, wallet-based, pay-per-use model</span>.
+              </p>
+              <p className="text-muted-foreground mb-2">All payments made on the Platform are for:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Prepaid usage credits</li>
+                <li>Digital access to search and analysis features</li>
+              </ul>
+              <p className="text-muted-foreground mt-3 font-semibold">
+                RecordSetu does not offer subscriptions or post-paid billing.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                2. WALLET CREDITS – NO REFUNDS
+              </h2>
+              
+              <h3 className="text-lg font-semibold text-foreground mb-2 mt-4">2.1 Credit Purchases</h3>
+              <p className="text-muted-foreground mb-2">All wallet credits purchased on RecordSetu are:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Prepaid</li>
+                <li>Non-refundable</li>
+                <li>Non-transferable</li>
+                <li>Non-exchangeable</li>
+                <li>Not redeemable for cash or equivalent value</li>
+              </ul>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                <p className="text-sm text-red-900 font-semibold mb-2">
+                  Once credits are added to a user's wallet, no refund shall be issued, whether:
+                </p>
+                <ul className="space-y-1 text-sm text-red-800 list-disc list-inside">
+                  <li>Credits are unused</li>
+                  <li>Credits are partially used</li>
+                  <li>User no longer requires the service</li>
+                </ul>
+              </div>
+
+              <h3 className="text-lg font-semibold text-foreground mb-2 mt-6">2.2 Credit Usage & Consumption</h3>
+              <p className="text-muted-foreground mb-2">Credits are consumed:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Per search</li>
+                <li>Per premium feature</li>
+                <li>As per pricing displayed at the time of use</li>
+              </ul>
+              <p className="text-muted-foreground mt-3 font-semibold">
+                Consumption of credits is final and irreversible.
+              </p>
+
+              <h3 className="text-lg font-semibold text-foreground mb-2 mt-6">2.3 Credit Expiry (If Applicable)</h3>
+              <p className="text-muted-foreground mb-2">If credits carry a validity or expiry period:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Expired credits cannot be restored</li>
+                <li>Expired credits do not qualify for refunds</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                3. NO REFUNDS FOR SEARCH OUTCOMES
+              </h2>
+              <p className="text-muted-foreground mb-3">RecordSetu does not guarantee:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Availability of data</li>
+                <li>Accuracy or completeness of results</li>
+                <li>Positive or expected search outcomes</li>
+              </ul>
+              <p className="text-muted-foreground mt-3 mb-2">Accordingly, no refunds shall be issued for:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Searches returning no results</li>
+                <li>Incomplete, outdated, or third-party sourced data</li>
+                <li>Errors originating from external data providers</li>
+                <li>Results not admissible in court</li>
+              </ul>
+              <p className="text-muted-foreground mt-3 font-semibold">
+                Search outputs are informational only.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                4. PAYMENT FAILURES & DUPLICATE TRANSACTIONS
+              </h2>
+              <p className="text-muted-foreground mb-3">
+                Refunds may be considered <span className="font-semibold">only</span> in the following limited scenarios:
               </p>
               <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li><span className="font-semibold text-foreground">Duplicate payment:</span> Accidental or duplicate transaction charges</li>
-                <li><span className="font-semibold text-foreground">Technical failure:</span> Service activation failure preventing platform access</li>
-                <li><span className="font-semibold text-foreground">Billing error:</span> Incorrect billing or charges not authorized by agency</li>
-                <li><span className="font-semibold text-foreground">Service termination:</span> Termination initiated by RecordSetu for non-user-fault reasons</li>
+                <li>Duplicate payment for the same transaction</li>
+                <li>Payment successfully deducted but wallet credits not added</li>
               </ul>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                3. Non-Refundable Cases
-              </h2>
-              <p className="text-muted-foreground mb-3">Refunds will <span className="font-semibold">NOT</span> be issued for:</p>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Credits not used within the validity period</li>
-                <li>Account suspension due to policy violation or misuse</li>
-                <li>Change of requirement or decision by the agency</li>
-                <li>Credits used for searches (consumed credits are final)</li>
-                <li>User-initiated account closure or subscription cancellation</li>
-                <li>Credits transferred between users or agencies</li>
-              </ul>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                4. Refund Processing Timeline
-              </h2>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li><span className="font-semibold text-foreground">Request window:</span> Refund requests must be raised within 7 days of the transaction</li>
-                <li><span className="font-semibold text-foreground">Processing time:</span> Refunds processed through original payment method within 10–15 working days</li>
-                <li><span className="font-semibold text-foreground">Government orders:</span> Offline government orders follow treasury cycle and approval procedures</li>
-                <li><span className="font-semibold text-foreground">Verification:</span> Agency may be requested to provide supporting documentation</li>
-              </ul>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                5. Credit Validity Period
-              </h2>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Credits are valid for <span className="font-semibold">12 months</span> from the date of purchase</li>
-                <li>Unused credits after the validity period expire automatically with no refund</li>
-                <li>Agency will be notified 30 days before credit expiration</li>
-                <li>No extension of validity period is provided</li>
-              </ul>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                6. How to Request a Refund
-              </h2>
-              <div className="bg-slate-50 border border-border rounded-lg p-4 space-y-2">
-                <p className="text-muted-foreground">
-                  To request a refund, please contact our support team with:
-                </p>
+              <div className="bg-slate-50 border border-border rounded-lg p-4 mt-4">
+                <p className="text-sm text-foreground font-semibold mb-2">Conditions:</p>
                 <ul className="space-y-1 text-sm text-muted-foreground list-disc list-inside">
-                  <li>Transaction ID or invoice number</li>
-                  <li>Date of purchase</li>
-                  <li>Reason for refund request</li>
-                  <li>Supporting documentation (if applicable)</li>
-                  <li>Agency contact person details</li>
+                  <li>Issue must be reported within 7 days of transaction</li>
+                  <li>Valid transaction proof is required</li>
+                  <li>Refunds are processed to the original payment method only</li>
                 </ul>
+                <p className="text-sm text-muted-foreground mt-3">
+                  Processing time depends on the payment gateway and banking channels.
+                </p>
               </div>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                7. Credit Transfers & Assignment
+                5. ACCOUNT SUSPENSION OR TERMINATION
               </h2>
+              <p className="text-muted-foreground mb-3">If an account is suspended or terminated due to:</p>
               <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Credits are non-transferable between agencies</li>
-                <li>Credits cannot be reassigned to different users within the same agency</li>
-                <li>Credits are bound to the agency and account they were purchased for</li>
+                <li>Violation of Terms of Service</li>
+                <li>Unauthorised or unlawful usage</li>
+                <li>Abuse, misuse, or misrepresentation</li>
+              </ul>
+              <p className="text-muted-foreground mt-3 mb-2 font-semibold">Any remaining wallet credits:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Are forfeited</li>
+                <li>Are not refundable</li>
               </ul>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                8. Payment Methods Accepted
+                6. SERVICE DOWNTIME & TECHNICAL ISSUES
               </h2>
+              <p className="text-muted-foreground mb-3">
+                Temporary service interruptions, maintenance windows, or degraded performance:
+              </p>
               <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Direct bank transfers from government accounts</li>
-                <li>Digital payment gateways (NEFT, RTGS, UPI for approved agencies)</li>
-                <li>Cheque or demand draft (on case-by-case basis)</li>
-                <li>PO and invoice-based billing for regular subscribers</li>
+                <li>Do not qualify for refunds</li>
               </ul>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mt-8">
-              <h3 className="font-semibold text-amber-900 mb-2">Important Notice</h3>
-              <p className="text-sm text-amber-800 mb-3">
-                This policy is subject to the terms and conditions outlined in our Terms of Use and applicable Indian law. In case of disputes, the decision of RecordSetu management will be final.
+              <p className="text-muted-foreground mt-3">
+                At RecordSetu's discretion, service credits may be issued as goodwill, but this does not create an obligation.
               </p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="font-semibold text-blue-900 mb-2">Support & Queries</h3>
-              <p className="text-sm text-blue-800">
-                For refund-related questions or to initiate a refund request, please contact our support team at support@recordsetu.com or call our dedicated support line.
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                7. TAXES & GST
+              </h2>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>GST and other applicable taxes once invoiced are non-refundable</li>
+                <li>Tax adjustments will be made only if legally mandated</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                8. GOVERNMENT / LEA EXCEPTION
+              </h2>
+              <p className="text-muted-foreground mb-3">
+                For authorised government or law-enforcement entities:
+              </p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Refunds, if any, shall be governed strictly by:
+                  <ul className="ml-6 mt-1 space-y-1 list-circle">
+                    <li>Written agreements</li>
+                    <li>Purchase Orders</li>
+                    <li>Official government terms</li>
+                  </ul>
+                </li>
+              </ul>
+              <p className="text-muted-foreground mt-3 font-semibold">
+                No implied refund rights apply.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                9. CHANGES TO THIS POLICY
+              </h2>
+              <p className="text-muted-foreground">
+                RecordSetu reserves the right to modify this Policy at any time. Continued use of the Platform after changes constitutes acceptance of the revised Policy.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                10. CONTACT INFORMATION
+              </h2>
+              <p className="text-muted-foreground mb-3">For billing or transaction issues, contact:</p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <div className="space-y-2">
+                  <p className="text-sm text-blue-900">
+                    <span className="font-semibold">Email:</span> billing@recordsetu.com
+                  </p>
+                  <p className="text-sm text-blue-900">
+                    <span className="font-semibold">Support:</span> support@recordsetu.com
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center pt-8 border-t border-border">
+              <p className="text-sm text-muted-foreground">
+                © 2025 RecordSetu. All Rights Reserved.
               </p>
             </div>
           </section>

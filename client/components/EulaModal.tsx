@@ -18,93 +18,172 @@ export default function EulaModal({ isOpen, onAccept, onDecline }: EulaModalProp
     return null;
   }
 
-  const eulaContent = `End-User License Agreement (EULA) for RecordSetu
+  const eulaContent = `END USER LICENSE AGREEMENT (EULA)
 
-Effective Date: January 1, 2024
+Last Updated: December 24, 2025
 
-This End-User License Agreement (EULA) is a legal agreement between you ("User", "You", "Your") and RecordSetu ("Company", "We", "Us", "Our"), governing your access to and use of the RecordSetu platform, including its web application, APIs, analytics modules, data search interfaces, and related services ("Service").
+This End User License Agreement ("Agreement" or "EULA") is a legally binding contract between RecordSetu ("Company", "we", "us", "our") and the individual or entity accessing or using the RecordSetu platform ("User", "you", "your").
 
-By creating an account, accessing, or using the Service, you agree to be bound by this EULA. If you do not agree, do not access or use the Service.
+By clicking "I Agree", creating an account, or using the Platform, you confirm that you have read, understood, and agreed to this Agreement. If you disagree, you must not access or use the Platform.
 
-1. LICENSE GRANT
+1. PLATFORM & LICENSE GRANT
 
-RecordSetu grants you a non-exclusive, non-transferable, limited, revocable license to access and use the Service strictly in accordance with this Agreement for authorized government, law-enforcement, compliance, verification, or investigative purposes only.
+RecordSetu offers a secure, restricted-access digital platform for searching, verifying, and analyzing records.
 
-Unauthorized commercial resale, redistribution, or replication of any part of the platform is strictly prohibited.
+Subject to your compliance with this Agreement, RecordSetu grants you a limited, non-exclusive, non-transferable, non-sublicensable, revocable license to access and use the Platform solely for lawful, authorized purposes.
 
-2. AUTHORIZED USE
+This license:
+• Does not constitute a sale
+• Does not grant ownership rights
+• May be revoked at any time
 
-You agree to:
-• Use the platform only for legitimate, lawful, and authorized data access
-• Access only those datasets you are approved for by organizational admin or lawful authority
-• Maintain confidentiality of any information accessed
-• Ensure that access logs, records, audits, and investigation outputs are handled as per your organization's security and confidentiality norms
+2. ELIGIBILITY & AUTHORITY
 
-3. RESTRICTIONS
+By using the Platform, you represent and warrant that:
+• You are legally competent to enter this Agreement
+• You are authorised by your organisation or agency
+• You have lawful authority, consent, or statutory power to conduct searches
+• Your use complies with all applicable Indian laws
+
+Unauthorised access or impersonation is strictly prohibited.
+
+3. DATA PROTECTION & DPDP COMPLIANCE
+
+3.1 Roles Under DPDP Act, 2023
+For the Digital Personal Data Protection Act, 2023 ("DPDP Act"):
+• The User or User's organisation acts as the Data Fiduciary
+• RecordSetu acts as a Data Intermediary / Data Processor
+
+3.2 User Obligations Under DPDP Act
+You acknowledge and agree that:
+• You are responsible for the lawful purpose limitation
+• You must ensure consent or legal authority before searches
+• You must not misuse or unlawfully disclose personal data
+• You must comply with the DPDP Act obligations applicable to Data Fiduciaries
+
+RecordSetu does not validate the legal basis of each search.
+
+3.3 Data Processing by RecordSetu
+RecordSetu may process:
+• Account identification data
+• Authentication and access metadata
+• Search metadata (not full datasets)
+• Hashed audit logs for compliance
+
+RecordSetu does not permanently store raw search result datasets by default.
+
+4. WALLET-BASED ACCESS & CREDITS
+
+RecordSetu operates on a prepaid wallet credit model only.
+
+Credits:
+• Are purchased in advance
+• Are consumed per feature usage
+• Do not represent currency or stored value
+• Are non-transferable and non-refundable
+
+Unused credits do not create any vested rights.
+
+5. PERMITTED USE
+
+You may use the Platform only for:
+• Lawful investigative or verification purposes
+• Authorised internal analysis
+• Compliance, due-diligence, or intelligence support
+
+All use must align with:
+• This EULA
+• Terms of Service
+• Privacy Policy
+• Applicable laws
+
+6. PROHIBITED USE
 
 You shall not:
-• Copy, reverse-engineer, decompile, modify, or attempt to extract source code
-• Use the system for personal data profiling or surveillance without lawful authorization
-• Share credentials, access tokens, or reports without written permission
-• Introduce malware, attempt to break system security, or perform stress testing without approval
-• Use the system to violate any privacy, compliance, or data-protection laws
+• Use the Platform for personal, commercial, or unlawful purposes
+• Misuse of Aadhaar or UIDAI systems
+• Resell, sublicense, or share access credentials
+• Scrape, copy, or reverse engineer the Platform
+• Use outputs to harass, defame, or violate privacy
+• Present outputs as certified or court-admissible evidence
 
-Violation may result in immediate suspension.
+Violation may result in immediate termination.
 
-4. ACCOUNT RESPONSIBILITY
+7. SEARCH OUTPUTS & DISCLAIMER
 
-You are responsible for maintaining account confidentiality, including login details, tokens, and session security. All activity under your account is presumed to be authorized by you.
+Search results:
+• Are informational and indicative only
+• May originate from public or licensed third-party sources
+• Are provided "as is" without warranties
 
-5. DATA ACCURACY & AVAILABILITY
+RecordSetu does not guarantee accuracy, completeness, or timeliness.
 
-RecordSetu aggregates information from multiple official and open-source repositories. We do not guarantee accuracy, completeness, or real-time availability of records, data integrity of third-party datasets, or uninterrupted uptime or compatibility with all devices.
+8. AUDIT LOGGING & MONITORING
 
-Outputs must be independently validated before use in legal proceedings.
+You acknowledge that:
+• All actions may be logged
+• Logs may be hashed or tamper-evident
+• Logs may be reviewed for security and compliance
+• Logs may be disclosed to lawful authorities if required
 
-6. INTELLECTUAL PROPERTY
+9. INTELLECTUAL PROPERTY
 
-All software, design, workflows, datasets, content, branding, and documentation associated with RecordSetu remain the exclusive intellectual property of the Company. No ownership rights are transferred under this Agreement.
+All intellectual property in the Platform, including software, UI, APIs, documentation, and branding, remains the exclusive property of RecordSetu.
 
-7. COMPLIANCE & LAWFUL USE
+No rights are granted except those expressly stated.
 
-Users must comply with the Digital Personal Data Protection Act (DPDPA), IT Act 2000/IT Rules 2021 (India), and applicable laws, regulations, and agency policies.
+10. SUSPENSION & TERMINATION
 
-Unauthorized access, misuse, or breach may result in legal action.
+RecordSetu may suspend or terminate access:
+• For policy or legal violations
+• For security or compliance risks
+• Without prior notice if required
 
-8. TERMINATION
+Upon termination:
+• The license ends immediately
+• Remaining wallet credits are forfeited
+• Audit logs may be retained as required by law
 
-The Company may suspend or terminate access if:
-• User breaches any terms of this Agreement
-• Unauthorized use or misuse is detected
-• Required by law-enforcement, court order, or compliance audit
+11. LIMITATION OF LIABILITY
 
-Upon termination, access to all data, dashboards, logs, or reports will be revoked without refund.
+To the maximum extent permitted by law:
 
-9. WARRANTY & LIMITATION OF LIABILITY
+Total liability, if any, shall not exceed the total value of wallet credits remaining in the User's account at the time the claim arises, or ₹10,000, whichever is lower.
 
-Service is provided "as-is" and "as-available" without guarantees.
+RecordSetu shall not be liable for indirect, incidental, or consequential damages.
 
-The Company shall not be liable for:
-• Direct, indirect, incidental, consequential, or punitive damages
-• Loss of data, revenue, or reputation
-• Decisions or actions taken based on provided information
+12. INDEMNIFICATION
 
-10. INDEMNIFICATION
+You agree to indemnify and hold harmless RecordSetu, its directors, employees, and partners from any claims arising from:
+• Your misuse of the Platform
+• Violation of law or DPDP obligations
+• Unauthorised searches
+• Third-party rights violations
 
-You agree to indemnify and hold harmless the Company from any claims arising from misuse, illegal access, or violation of laws or policies by you or under your account.
+13. GOVERNING LAW & JURISDICTION
 
-11. GOVERNING LAW & DISPUTE RESOLUTION
+This Agreement shall be governed by the laws of India. Courts at India shall have exclusive jurisdiction.
 
-This agreement is governed by the laws of India. Any disputes shall be resolved under arbitration in Indore, Madhya Pradesh, under the Arbitration and Conciliation Act, 1996.
+14. MODIFICATIONS
 
-12. CHANGES TO AGREEMENT
+RecordSetu may modify this Agreement at any time. Continued use after updates constitutes acceptance.
 
-The Company may update terms periodically. Continued use after updates constitutes acceptance.
+15. ENTIRE AGREEMENT
 
-13. CONTACT INFORMATION
+This EULA, together with:
+• Terms of Service
+• Privacy Policy
+• Refund Policy
+• DPDP Consent Notice
 
-For questions, compliance requests, or dispute notices:
-Email: support@recordsetu.com
+constitutes the entire agreement between you and RecordSetu.
+
+16. CONTACT INFORMATION
+
+Privacy: privacy@recordsetu.com
+Support: support@recordsetu.com
+
+© 2025-26 RecordSetu. All Rights Reserved.
 
 ---
 
