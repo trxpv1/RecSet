@@ -80,7 +80,7 @@ export default function Wallet() {
   };
 
   const rechargeOptions = [
-    { name: "Silver", credits: 10, price: "₹299", popular: false },
+    { name: "Silver", credits: 20, price: "₹299", popular: false },
     { name: "Gold", credits: 20, price: "₹499", popular: true },
     { name: "Diamond", credits: 40, price: "₹999", popular: false },
   ];
@@ -353,10 +353,10 @@ export default function Wallet() {
                     </p>
                   </div>
                   
-                  <div className="flex items-center justify-center gap-2 mb-8 text-muted-foreground">
+                  {/* <div className="flex items-center justify-center gap-2 mb-8 text-muted-foreground">
                     <Coins className="w-5 h-5" />
                     <span className="text-xl font-medium">{option.credits} Credits</span>
-                  </div>
+                  </div> */}
                   
                   <Button
                     onClick={() => handleQuickRecharge(option.credits, option.price)}
