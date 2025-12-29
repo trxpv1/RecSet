@@ -4,16 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Header from "@/components/Header";
-import { Mail, Lock, User, FileText, ArrowRight } from "lucide-react";
+import { authAPI } from "@/lib/apiClient";
+import { Mail, Lock, User, FileText, ArrowRight, Phone, MapPin } from "lucide-react";
 
 export default function Signup() {
   const navigate = useNavigate();
+  const COMPANY_API_KEY = 'pk_d1aae335945142f893b967eb05b640ee'; // Company API key
+  
   const [formData, setFormData] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
-    badge: "",
+    phone: "",
     password: "",
     confirmPassword: "",
+    dob: "",
+    address: "",
+    pin_code: "",
+    city: "",
+    state: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,8 +39,8 @@ export default function Signup() {
     setIsLoading(true);
 
     // Validation
-    if (!formData.name || !formData.email || !formData.badge || !formData.password) {
-      setError("Please fill in all fields");
+    if (!formData.first_name || !formData.last_name || !formData.email || !formData.phone || !formData.password) {
+      setError("Please fill in all required fields");
       setIsLoading(false);
       return;
     }
@@ -42,28 +51,36 @@ export default function Signup() {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters with 1 uppercase, 1 lowercase, 1 number, 1 special char");
       setIsLoading(false);
       return;
     }
 
-    // Simulate signup
-    setTimeout(() => {
+    try {
+      // Call real API
+      await authAPI.register({
+        company_api_key: COMPANY_API_KEY,
+        username: formData.email, // Use email as username
+        email: formData.email,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        password: formData.password,
+        password2: formData.confirmPassword,
+        phone: formData.phone,
+        dob: formData.dob || "1990-01-01",
+        address: formData.address || "Not provided",
+        pin_code: formData.pin_code || "000000",
+        city: formData.city || "Not provided",
+        state: formData.state || "Not provided",
+      });
+      
       setSuccess(true);
-      setTimeout(() => {
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email: formData.email,
-            name: formData.name,
-            role: "user", // Signup always creates normal users
-          })
-        );
-        navigate("/dashboard");
-      }, 1500);
       setIsLoading(false);
-    }, 500);
+    } catch (err: any) {
+      setError(err.message || "Registration failed. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   if (success) {
@@ -92,29 +109,26 @@ export default function Signup() {
 
               <div className="space-y-2">
                 <h2 className="text-2xl font-heading font-bold text-foreground">
-                  Application Submitted!
+                  Registration Successful!
                 </h2>
                 <p className="text-muted-foreground">
-                  Thank you for requesting access to Recordsetu. Your application
-                  has been received and will be revied by our team.
+                  Your account has been created successfully. Please check your email to verify your account.
                 </p>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
-                <p className="font-medium mb-1">What happens next?</p>
+                <p className="font-medium mb-1">What's next?</p>
                 <p>
-                  You'll receive an email at <strong>{formData.email}</strong>{" "}
-                  with your verification details and access credentials within
-                  24 hours.
+                  We've sent a verification email to <strong>{formData.email}</strong>.
+                  Click the link in the email to verify your account and start using Recordsetu.
                 </p>
               </div>
 
               <Button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/login")}
                 className="w-full"
-                variant="outline"
               >
-                Back to Home
+                Go to Login
               </Button>
             </div>
           </div>
@@ -154,22 +168,44 @@ export default function Signup() {
                 </div>
               )}
 
-              {/* Full Name Field */}
+              {/* First Name Field */}
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium">
-                  Full Name
+                <Label htmlFor="first_name" className="text-sm font-medium">
+                  First Name <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    id="name"
-                    name="name"
+                    id="first_name"
+                    name="first_name"
                     type="text"
-                    placeholder="Your full name"
-                    value={formData.name}
+                    placeholder="John"
+                    value={formData.first_name}
                     onChange={handleChange}
                     disabled={isLoading}
                     className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Last Name Field */}
+              <div className="space-y-2">
+                <Label htmlFor="last_name" className="text-sm font-medium">
+                  Last Name <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="last_name"
+                    name="last_name"
+                    type="text"
+                    placeholder="Doe"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    className="pl-10"
+                    required
                   />
                 </div>
               </div>
@@ -177,7 +213,7 @@ export default function Signup() {
               {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
-                  Email Address
+                  Email Address <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -185,31 +221,33 @@ export default function Signup() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="officer@lea.gov.in"
+                    placeholder="your.email@example.com"
                     value={formData.email}
                     onChange={handleChange}
                     disabled={isLoading}
                     className="pl-10"
+                    required
                   />
                 </div>
               </div>
 
-              {/* Badge Number Field */}
+              {/* Phone Field */}
               <div className="space-y-2">
-                <Label htmlFor="badge" className="text-sm font-medium">
-                  Officer Badge / ID Number
+                <Label htmlFor="phone" className="text-sm font-medium">
+                  Phone Number <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
-                  <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    id="badge"
-                    name="badge"
-                    type="text"
-                    placeholder="LEA-2024-xxxxx"
-                    value={formData.badge}
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="9999999999"
+                    value={formData.phone}
                     onChange={handleChange}
                     disabled={isLoading}
                     className="pl-10"
+                    required
                   />
                 </div>
               </div>
@@ -217,7 +255,7 @@ export default function Signup() {
               {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">
-                  Password
+                  Password <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -225,11 +263,12 @@ export default function Signup() {
                     id="password"
                     name="password"
                     type="password"
-                    placeholder="Enter password"
+                    placeholder="Min 8 chars, 1 upper, 1 lower, 1 number, 1 special"
                     value={formData.password}
                     onChange={handleChange}
                     disabled={isLoading}
                     className="pl-10"
+                    required
                   />
                 </div>
               </div>
@@ -237,7 +276,7 @@ export default function Signup() {
               {/* Confirm Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-sm font-medium">
-                  Confirm Password
+                  Confirm Password <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -250,6 +289,7 @@ export default function Signup() {
                     onChange={handleChange}
                     disabled={isLoading}
                     className="pl-10"
+                    required
                   />
                 </div>
               </div>

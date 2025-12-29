@@ -3,7 +3,7 @@
  * Handles HTTP requests, token management, and error handling
  */
 
-const BASE_URL = 'https://new-cybershastra.onrender.com';
+const BASE_URL = 'https://osint-ninja.vercel.app';
 
 // Helper to get auth token from localStorage
 export const getAuthToken = (): string | null => {
@@ -33,10 +33,22 @@ async function apiRequest<T>(
     ...options.headers,
   };
 
-  // Add authorization header if token exists
-  if (token) {
+  // Don't send Authorization header for login/register endpoints
+  // These endpoints are used to GET a token, not authenticate with one
+  const isAuthEndpoint = endpoint === '/api/login' || endpoint === '/api/register';
+  
+  // Add authorization header if token exists (but NOT for auth endpoints)
+  if (token && !isAuthEndpoint) {
     headers['Authorization'] = `Token ${token}`;
   }
+
+  // Debug logging
+  console.log('🔍 API Request:', {
+    url: `${BASE_URL}${endpoint}`,
+    method: options.method || 'GET',
+    body: options.body,
+    headers
+  });
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
@@ -44,6 +56,13 @@ async function apiRequest<T>(
   });
 
   const data = await response.json();
+
+  // Debug logging
+  console.log('📥 API Response:', {
+    status: response.status,
+    ok: response.ok,
+    data
+  });
 
   // Handle errors
   if (!response.ok) {
@@ -56,6 +75,7 @@ async function apiRequest<T>(
 // ==================== TYPE DEFINITIONS ====================
 
 export interface RegisterData {
+  company_api_key: string;
   first_name: string;
   last_name: string;
   username: string;
@@ -71,19 +91,26 @@ export interface RegisterData {
 }
 
 export interface LoginData {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface LoginResponse {
   token: string;
-  user_id: number;
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  is_verified: boolean;
-  credits: number;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    is_verified: boolean;
+    credits: number;
+    phone?: string;
+  };
+  company: {
+    id: number;
+    name: string;
+  };
 }
 
 export interface ChangePasswordData {
@@ -180,4 +207,55 @@ export const authAPI = {
       body: JSON.stringify(data),
     });
   },
+};
+
+// ==================== RAZORPAY PAYMENT API ====================
+// NOTE: Backend endpoints need to be implemented before testing
+
+export interface CreateOrderData {
+  amount: number; // Amount in INR
+}
+
+export interface CreateOrderResponse {
+  order_id: string;
+  amount: number;
+  currency: string;
+}
+
+export interface VerifyPaymentData {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+  amount: number;
+}
+
+export interface VerifyPaymentResponse {
+  message: string;
+  payment_id: string;
+  credits_added: number;
+  new_balance: number;
+}
+
+/**
+ * Create Razorpay order
+ * Backend endpoint: POST /api/create-order
+ * Status: ⚠️ NEEDS TO BE IMPLEMENTED
+ */
+export const createOrder = async (data: CreateOrderData): Promise<CreateOrderResponse> => {
+  return apiRequest<CreateOrderResponse>('/api/create-order', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Verify Razorpay payment and add credits
+ * Backend endpoint: POST /api/verify-razorpay-payment
+ * Status: ⚠️ NEEDS TO BE IMPLEMENTED
+ */
+export const verifyPayment = async (data: VerifyPaymentData): Promise<VerifyPaymentResponse> => {
+  return apiRequest<VerifyPaymentResponse>('/api/verify-razorpay-payment', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 };

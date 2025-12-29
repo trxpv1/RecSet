@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createOrder, verifyPayment } from "@/lib/apiClient";
+import { useToast } from "@/hooks/use-toast";
 import {
   Coins,
   LogOut,
@@ -33,6 +35,11 @@ interface Transaction {
 export default function Wallet() {
   const navigate = useNavigate();
   const { user: authUser, logout: authLogout, isAuthenticated, updateUser, isDemoUser } = useAuth();
+  const { toast } = useToast();
+  
+  // Razorpay Test Key
+  const RAZORPAY_KEY_ID = 'rzp_test_RxNELKhysZb3TF';
+  
   const [user, setUser] = useState<User | null>(null);
   const [balance, setBalance] = useState(250);
   const [rechargeAmount, setRechargeAmount] = useState("");
@@ -78,25 +85,139 @@ export default function Wallet() {
     { name: "Diamond", credits: 40, price: "₹999", popular: false },
   ];
 
-  const handleQuickRecharge = (credits: number) => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      const newBalance = balance + credits;
-      const newTransaction: Transaction = {
-        id: Date.now().toString(),
-        type: "credit",
-        amount: credits,
-        description: "Recharge via Credit Card",
-        timestamp: new Date().toISOString(),
-        balanceAfter: newBalance,
+  const handleQuickRecharge = async (credits: number, price: string) => {
+    try {
+      setIsProcessing(true);
+
+      // Calculate amount in INR (remove ₹ and comma)
+      const amount = parseInt(price.replace('₹', '').replace(',', ''));
+
+      // ⚠️ CHECK: Backend payment endpoints availability
+      // Remove this check once /api/create-order and /api/verify-razorpay-payment are implemented
+      try {
+        const testResponse = await fetch('https://osint-ninja.vercel.app/api/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: 1 })
+        });
+        
+        if (!testResponse.ok && testResponse.status === 404) {
+          throw new Error('BACKEND_NOT_READY');
+        }
+      } catch (testError: any) {
+        if (testError.message === 'BACKEND_NOT_READY' || testError instanceof TypeError) {
+          toast({
+            title: "Payment System Unavailable",
+            description: "Backend payment endpoints (/api/create-order, /api/verify-razorpay-payment) need to be implemented. Contact backend team.",
+            variant: "destructive",
+          });
+          setIsProcessing(false);
+          return;
+        }
+      }
+
+      // ⚠️ STEP 1: Create order on backend (BACKEND ENDPOINT REQUIRED)
+      const orderData = await createOrder({ amount });
+      
+      // STEP 2: Open Razorpay checkout modal
+      const options = {
+        key: RAZORPAY_KEY_ID,
+        amount: orderData.amount * 100,  // Convert to paise
+        currency: orderData.currency,
+        order_id: orderData.order_id,
+        name: 'RecordSetu',
+        description: `${credits} Credits Recharge`,
+        handler: async (response: any) => {
+          // STEP 3: Payment successful - verify on backend
+          try {
+            const verifyData = await verifyPayment({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: amount,
+            });
+
+            // STEP 4: Update UI with new balance
+            setBalance(verifyData.new_balance);
+            
+            // Add transaction to history
+            const newTransaction: Transaction = {
+              id: response.razorpay_payment_id,
+              type: "credit",
+              amount: verifyData.credits_added,
+              description: `Razorpay Payment - ${credits} Credits`,
+              timestamp: new Date().toISOString(),
+              balanceAfter: verifyData.new_balance,
+            };
+            setTransactions([newTransaction, ...transactions]);
+
+            // Show success message
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+            
+            // Update user in context
+            if (authUser) {
+              updateUser({ ...authUser, credits: verifyData.new_balance });
+            }
+
+            toast({
+              title: "Payment Successful!",
+              description: `${verifyData.credits_added} credits added to your wallet`,
+            });
+          } catch (error: any) {
+            toast({
+              title: "Payment Verification Failed",
+              description: error.message || "Failed to verify payment",
+              variant: "destructive",
+            });
+          }
+        },
+        prefill: {
+          email: authUser?.email,
+          contact: authUser?.phone,
+        },
+        theme: {
+          color: '#3B82F6',
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+          }
+        }
       };
 
-      setBalance(newBalance);
-      setTransactions([newTransaction, ...transactions]);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      // @ts-ignore - Razorpay is loaded via script tag
+      const razorpay = new window.Razorpay(options);
+      
+      razorpay.on('payment.failed', (response: any) => {
+        toast({
+          title: "Payment Failed",
+          description: response.error.description,
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+      });
+
+      razorpay.open();
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      
+      // Handle backend endpoint not ready
+      if (error.message.includes('404') || error.message.includes('Not Found')) {
+        toast({
+          title: "Backend Not Ready",
+          description: "Payment endpoints need to be implemented. Contact backend team.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to initiate payment",
+          variant: "destructive",
+        });
+      }
       setIsProcessing(false);
-    }, 1200);
+    }
   };
 
   const handleCustomRecharge = (e: React.FormEvent) => {
@@ -238,7 +359,7 @@ export default function Wallet() {
                   </div>
                   
                   <Button
-                    onClick={() => handleQuickRecharge(option.credits)}
+                    onClick={() => handleQuickRecharge(option.credits, option.price)}
                     disabled={isProcessing}
                     className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 text-lg"
                   >

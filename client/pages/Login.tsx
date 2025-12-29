@@ -12,7 +12,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -30,12 +30,12 @@ export default function Login() {
 
     try {
       // Validate inputs
-      if (!formData.username || !formData.password) {
+      if (!formData.email || !formData.password) {
         throw new Error("Please fill in all fields");
       }
 
       // Call login from AuthContext
-      await login(formData.username, formData.password);
+      await login(formData.email, formData.password);
       
       // Navigate to dashboard on success
       navigate("/dashboard");
@@ -78,19 +78,19 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Username Field */}
+              {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium">
-                  Username
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    id="username"
-                    name="username"
-                    type="text"
-                    placeholder="Enter your username"
-                    value={formData.username}
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
                     onChange={handleChange}
                     disabled={isLoading}
                     className="pl-10"

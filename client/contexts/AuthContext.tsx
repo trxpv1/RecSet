@@ -89,10 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Login function with demo user support
-  const login = async (username: string, password: string) => {
+  const login = async (emailOrUsername: string, password: string) => {
     try {
       // Check if it's a demo user first
-      const demoUser = DEMO_USERS[username as keyof typeof DEMO_USERS];
+      const demoUser = DEMO_USERS[emailOrUsername as keyof typeof DEMO_USERS];
       
       if (demoUser && demoUser.password === password) {
         // Mock demo authentication
@@ -102,27 +102,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsDemoUser(true);
         localStorage.setItem('user', JSON.stringify(demoUser.user));
         localStorage.setItem('isDemoUser', 'true');
-        console.log('✅ Demo user logged in:', username);
+        console.log('✅ Demo user logged in:', emailOrUsername);
         return;
       }
 
       // Otherwise, try real API authentication
-      console.log('Attempting real API login for:', username);
-      const response = await authAPI.login({ username, password });
+      console.log('Attempting real API login for:', emailOrUsername);
+      const response = await authAPI.login({ email: emailOrUsername, password });
       
       // Save token
       setAuthToken(response.token);
       
-      // Create user object
+      // Create user object from API response
+      // Handle missing fields with safe defaults
       const userData: User = {
-        id: response.user_id,
-        username: response.username,
-        email: response.email,
-        first_name: response.first_name,
-        last_name: response.last_name,
-        is_verified: response.is_verified,
-        credits: response.credits,
+        id: response.user.id || 0, // API doesn't return id, use 0 as default
+        username: response.user.username || response.user.email,
+        email: response.user.email,
+        first_name: response.user.first_name || '',
+        last_name: response.user.last_name || '',
+        is_verified: response.user.is_verified !== undefined ? response.user.is_verified : true,
+        credits: response.user.credits || 0,
         role: 'user',
+        phone: response.user.phone || '',
       };
       
       // Save user to state and localStorage
@@ -130,7 +132,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsDemoUser(false);
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('isDemoUser', 'false');
-      console.log('✅ Real API user logged in:', username);
+      localStorage.setItem('userEmail', userData.email);
+      localStorage.setItem('userPhone', userData.phone || '');
+      // Use email as userId if id is missing or 0
+      localStorage.setItem('userId', userData.id ? userData.id.toString() : userData.email);
+      console.log('✅ Real API user logged in:', emailOrUsername);
     } catch (error: any) {
       console.error('Login error:', error);
       throw new Error(error.message || 'Invalid credentials');
