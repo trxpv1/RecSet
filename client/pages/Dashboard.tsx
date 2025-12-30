@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress } from "@/lib/apiClient";
+import { generatePDFReport } from "@/lib/pdfGenerator";
 import {
   Search,
   X,
@@ -21,7 +23,61 @@ import {
   ChevronRight,
   AlertCircle,
   Menu,
+  Clock,
+  Building2,
 } from "lucide-react";
+
+/**
+ * Recursively flatten nested objects for display in data grid
+ * Handles arrays and nested objects from API responses
+ */
+const flattenDataForDisplay = (data: Record<string, any>, prefix = ''): Record<string, any> => {
+  const flattened: Record<string, any> = {};
+
+  Object.entries(data).forEach(([key, value]) => {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+
+    if (value === null || value === undefined) {
+      flattened[fullKey] = 'N/A';
+    } else if (Array.isArray(value)) {
+      if (value.length === 0) {
+        flattened[fullKey] = 'N/A';
+      } else if (value.every(item => typeof item === 'string' || typeof item === 'number')) {
+        flattened[fullKey] = value.filter(v => v !== '').join(', ') || 'N/A';
+      } else {
+        flattened[fullKey] = JSON.stringify(value, null, 2);
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      const hasData = Object.values(value).some(v => v !== null && v !== undefined && v !== '');
+      if (!hasData) {
+        flattened[fullKey] = 'N/A';
+      } else {
+        Object.assign(flattened, flattenDataForDisplay(value, fullKey));
+      }
+    } else if (typeof value === 'boolean') {
+      flattened[fullKey] = value;
+    } else {
+      flattened[fullKey] = value === '' ? 'N/A' : value;
+    }
+  });
+
+  return flattened;
+};
+
+/**
+ * Format key names for display
+ * Converts snake_case and camelCase to Title Case
+ */
+const formatKeyName = (key: string): string => {
+  return key
+    .replace(/[._]/g, ' ')
+    .replace(/([A-Z])/g, ' $1')
+    .split(' ')
+    .filter(word => word.length > 0)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+    .trim();
+};
 
 interface User {
   email: string;
@@ -46,15 +102,15 @@ const VERIFICATION_CATEGORIES = {
     icon: Shield,
     bgColor: "bg-primary",
     items: [
-      { value: "aadhar-search", label: "Aadhar Search", credits: 2 },
-      { value: "pan-search", label: "PAN Search", credits: 1 },
-      { value: "pan-info", label: "PAN Details", credits: 2 },
-      { value: "aadhar-to-pan", label: "Aadhar to PAN", credits: 2 },
-      { value: "pan-validation", label: "PAN Validation", credits: 1 },
-      { value: "phone-verification", label: "Phone Verification", credits: 1 },
-      { value: "mobile-to-pan", label: "Mobile to PAN", credits: 2 },
-      { value: "driving-license", label: "Driving License", credits: 2 },
-      { value: "voter-id", label: "Voter ID Search", credits: 1 },
+      { value: "aadhar-search", label: "Aadhar Search", credits: 2, comingSoon: true },
+      { value: "pan-search", label: "PAN Search", credits: 1, comingSoon: true },
+      { value: "pan-info", label: "PAN Details", credits: 2, comingSoon: false },
+      { value: "voter-id", label: "Voter ID", credits: 2, comingSoon: false },
+      { value: "driving-license", label: "Driving License", credits: 2, comingSoon: false },
+      { value: "aadhar-to-pan", label: "Aadhar to PAN", credits: 2, comingSoon: true },
+      { value: "pan-validation", label: "PAN Validation", credits: 1, comingSoon: true },
+      { value: "phone-verification", label: "Phone Verification", credits: 1, comingSoon: true },
+      { value: "mobile-to-pan", label: "Mobile to PAN", credits: 2, comingSoon: true },
     ],
   },
   vehicle: {
@@ -62,11 +118,13 @@ const VERIFICATION_CATEGORIES = {
     icon: Car,
     bgColor: "bg-secondary",
     items: [
-      { value: "rc-details", label: "RC Details", credits: 2 },
-      { value: "rc-to-mobile", label: "RC to Mobile", credits: 2 },
-      { value: "mobile-to-rc", label: "Mobile to RC", credits: 3 },
-      { value: "fastag-to-rc", label: "FASTag to RC", credits: 2 },
-      { value: "rc-to-fastag", label: "RC to FASTag", credits: 2 },
+      { value: "rc-full", label: "RC Full Details", credits: 2, comingSoon: false },
+      { value: "rc-to-mobile", label: "RC to Mobile", credits: 2, comingSoon: false },
+      { value: "chassis-to-rc", label: "Chassis to RC", credits: 2, comingSoon: false },
+      { value: "mobile-to-rc", label: "Mobile to RC", credits: 3, comingSoon: false },
+      { value: "fastag-to-rc", label: "FASTag to RC", credits: 2, comingSoon: false },
+      { value: "rc-details", label: "RC Details", credits: 2, comingSoon: true },
+      { value: "rc-to-fastag", label: "RC to FASTag", credits: 2, comingSoon: true },
     ],
   },
   financial: {
@@ -74,14 +132,15 @@ const VERIFICATION_CATEGORIES = {
     icon: Coins,
     bgColor: "bg-accent",
     items: [
-      { value: "phone-to-bank", label: "Phone to Bank", credits: 3 },
-      { value: "bank-validation", label: "Bank Validation", credits: 2 },
-      { value: "bank-ifsc", label: "Bank IFSC", credits: 1 },
-      { value: "mobile-to-upi", label: "Mobile to UPI", credits: 2 },
-      { value: "upi-details", label: "UPI Details", credits: 2 },
-      { value: "gst-search", label: "GST Search", credits: 2 },
-      { value: "gst-details", label: "GST Details", credits: 3 },
-      { value: "pan-to-all-gst", label: "PAN to All GST", credits: 3 },
+      { value: "bank-verification-mobile", label: "Bank Verification Mobile", credits: 3, comingSoon: false },
+      { value: "phone-to-bank", label: "Phone to Bank", credits: 3, comingSoon: true },
+      { value: "bank-validation", label: "Bank Validation", credits: 2, comingSoon: true },
+      { value: "bank-ifsc", label: "Bank IFSC", credits: 1, comingSoon: true },
+      { value: "mobile-to-upi", label: "Mobile to UPI", credits: 2, comingSoon: true },
+      { value: "upi-details", label: "UPI Details", credits: 2, comingSoon: true },
+      { value: "gst-search", label: "GST Search", credits: 2, comingSoon: true },
+      { value: "gst-details", label: "GST Details", credits: 3, comingSoon: true },
+      { value: "pan-to-all-gst", label: "PAN to All GST", credits: 3, comingSoon: true },
     ],
   },
   special: {
@@ -89,11 +148,11 @@ const VERIFICATION_CATEGORIES = {
     icon: Sparkles,
     bgColor: "bg-primary/80",
     items: [
-      { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 3 },
-      { value: "mobile-to-multiple-addresses", label: "Mobile to Addresses", credits: 4 },
-      { value: "multi-search", label: "Multi-Record Search", credits: 5 },
-      { value: "property-search", label: "Property Search", credits: 3 },
-      { value: "company-search", label: "Company Search", credits: 2 },
+      { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 3, comingSoon: true },
+      { value: "mobile-to-multiple-addresses", label: "Mobile to Addresses", credits: 4, comingSoon: true },
+      { value: "multi-search", label: "Multi-Record Search", credits: 5, comingSoon: true },
+      { value: "property-search", label: "Property Search", credits: 3, comingSoon: true },
+      { value: "company-search", label: "Company Search", credits: 2, comingSoon: true },
     ],
   },
   employment: {
@@ -101,10 +160,29 @@ const VERIFICATION_CATEGORIES = {
     icon: Briefcase,
     bgColor: "bg-secondary/80",
     items: [
-      { value: "pan-to-uan", label: "PAN to UAN", credits: 2 },
-      { value: "pan-employment", label: "PAN Employment", credits: 2 },
-      { value: "mobile-to-uan", label: "Mobile to UAN", credits: 2 },
-      { value: "gas-connection", label: "Gas Connection", credits: 2 },
+      { value: "pan-to-uan", label: "PAN to UAN", credits: 2, comingSoon: true },
+      { value: "pan-employment", label: "PAN Employment", credits: 2, comingSoon: true },
+      { value: "mobile-to-uan", label: "Mobile to UAN", credits: 2, comingSoon: true },
+      { value: "gas-connection", label: "Gas Connection", credits: 2, comingSoon: true },
+    ],
+  },
+  special: {
+    label: "Special Searches",
+    icon: Sparkles,
+    bgColor: "bg-emerald-600",
+    items: [
+      { value: "mobile-intelligence", label: "Mobile Intelligence", credits: 5, comingSoon: false },
+      { value: "mobile-to-address", label: "Mobile to Address", credits: 3, comingSoon: false },
+    ],
+  },
+  corporate: {
+    label: "Corporate Records",
+    icon: Building2,
+    bgColor: "bg-purple-600",
+    items: [
+      { value: "din-lookup", label: "DIN Lookup", credits: 2, comingSoon: false },
+      { value: "director-phone", label: "Director Phone", credits: 2, comingSoon: false },
+      { value: "gstin-advanced", label: "GSTIN Advanced", credits: 3, comingSoon: false },
     ],
   },
   court: {
@@ -112,8 +190,8 @@ const VERIFICATION_CATEGORIES = {
     icon: Scale,
     bgColor: "bg-destructive",
     items: [
-      { value: "court-records", label: "Court Records", credits: 4 },
-      { value: "case-details", label: "Case Details", credits: 3 },
+      { value: "court-records", label: "Court Records", credits: 4, comingSoon: true },
+      { value: "case-details", label: "Case Details", credits: 3, comingSoon: true },
     ],
   },
   logs: {
@@ -257,6 +335,12 @@ export default function Dashboard() {
   };
 
   const handleScanNow = (verification: any) => {
+    // Check if feature is coming soon
+    if (verification.comingSoon) {
+      alert("🚧 Coming Soon!\n\nThis feature is currently under development and will be available soon.");
+      return;
+    }
+    
     if (credits < verification.credits) {
       alert("Insufficient credits. Please recharge your wallet.");
       return;
@@ -272,30 +356,155 @@ export default function Dashboard() {
 
     setIsSearching(true);
 
-    setTimeout(() => {
-      const sampleData = getSampleData(selectedVerification.value, query);
+    try {
+      console.log('🚀 Starting verification:', {
+        type: selectedVerification.value,
+        label: selectedVerification.label,
+        query: query.substring(0, 4) + '****',
+        timestamp: new Date().toISOString(),
+      });
+
+      let response;
+
+      // Route to appropriate API based on verification type
+      if (selectedVerification.value === 'pan-info') {
+        // ✅ REAL API CALL for PAN Details
+        response = await verifyPANComprehensive(query);
+      } else if (selectedVerification.value === 'voter-id') {
+        // ✅ REAL API CALL for Voter ID
+        response = await verifyVoterID(query);
+      } else if (selectedVerification.value === 'driving-license') {
+        // ✅ REAL API CALL for Driving License
+        response = await verifyDrivingLicense(query);
+      } else if (selectedVerification.value === 'din-lookup') {
+        // ✅ REAL API CALL for DIN Lookup
+        response = await verifyCorporateDIN(query);
+      } else if (selectedVerification.value === 'director-phone') {
+        // ✅ REAL API CALL for Director Phone
+        response = await verifyDirectorPhone(query);
+      } else if (selectedVerification.value === 'gstin-advanced') {
+        // ✅ REAL API CALL for GSTIN Advanced
+        response = await verifyGSTINAdvanced(query);
+      } else if (selectedVerification.value === 'bank-verification-mobile') {
+        // ✅ REAL API CALL for Bank Verification Mobile
+        response = await verifyBankByMobile(query);
+      } else if (selectedVerification.value === 'rc-full') {
+        // ✅ REAL API CALL for RC Full Details
+        response = await verifyRCFull(query);
+      } else if (selectedVerification.value === 'rc-to-mobile') {
+        // ✅ REAL API CALL for RC to Mobile
+        response = await verifyRCToMobile(query);
+      } else if (selectedVerification.value === 'chassis-to-rc') {
+        // ✅ REAL API CALL for Chassis to RC
+        response = await verifyChassisToRC(query);
+      } else if (selectedVerification.value === 'mobile-to-rc') {
+        // ✅ REAL API CALL for Mobile to RC
+        response = await verifyMobileToRC(query);
+      } else if (selectedVerification.value === 'fastag-to-rc') {
+        // ✅ REAL API CALL for FASTag to RC
+        response = await verifyFASTagToRC(query);
+      } else if (selectedVerification.value === 'mobile-intelligence') {
+        // ✅ REAL API CALL for Mobile Intelligence
+        response = await verifyMobileIntelligence(query);
+      } else if (selectedVerification.value === 'mobile-to-address') {
+        // ✅ REAL API CALL for Mobile to Address
+        response = await verifyMobileToAddress(query);
+      } else {
+        // Fallback for other types (temporary)
+        throw new Error('This verification type is not yet implemented');
+      }
+
+      console.log('✅ Verification response received:', {
+        success: response.success,
+        hasData: !!response.data,
+        creditsDeducted: response.credit_details?.user_price_deducted,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Verification failed');
+      }
 
       const newResult: VerificationResult = {
-        id: Date.now().toString(),
+        id: response.data.client_id || Date.now().toString(),
         type: selectedVerification.label,
         query,
         status: "success",
         timestamp: new Date().toISOString(),
-        creditsUsed: selectedVerification.credits,
-        data: sampleData,
+        creditsUsed: response.credit_details?.user_price_deducted || selectedVerification.credits,
+        data: response.data,
       };
 
-      setResults([newResult, ...results]);
-      setCredits(credits - newResult.creditsUsed);
+      const updatedResults = [newResult, ...results];
+      setResults(updatedResults);
+      
+      // Save to localStorage
+      localStorage.setItem('verificationHistory', JSON.stringify(updatedResults.slice(0, 50)));
+      
+      // Update credits from API response
+      const newCredits = response.credit_details?.user_remaining_credits ?? credits - newResult.creditsUsed;
+      setCredits(newCredits);
+      
       setCurrentResult(newResult);
       setIsSearching(false);
       setShowQueryModal(false);
       setShowResultModal(true);
-    }, 1500);
+
+      console.log('✅ Verification completed successfully');
+
+    } catch (error: any) {
+      console.error('❌ Verification failed:', {
+        error: error.message,
+        type: selectedVerification.value,
+        timestamp: new Date().toISOString(),
+      });
+      
+      let errorMessage = 'Verification failed. Please try again.';
+      
+      if (error.message.includes('not yet implemented')) {
+        errorMessage = '🚧 This verification type is not yet available.\nPlease try another verification.';
+      } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        errorMessage = 'Session expired. Please login again.';
+        setTimeout(() => navigate('/login'), 2000);
+      } else if (error.message.includes('Network')) {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(`❌ Verification Error:\n\n${errorMessage}`);
+      
+      setIsSearching(false);
+      setShowQueryModal(false);
+    }
   };
 
   const handleExportPDF = () => {
-    alert("PDF Export functionality - to be implemented");
+    if (!currentResult || !currentResult.data) {
+      alert("❌ No data available to export");
+      return;
+    }
+
+    try {
+      generatePDFReport({
+        type: currentResult.type,
+        query: currentResult.query,
+        timestamp: currentResult.timestamp,
+        creditsUsed: currentResult.creditsUsed,
+        data: currentResult.data,
+        userInfo: authUser ? {
+          name: `${authUser.first_name} ${authUser.last_name}`,
+          email: authUser.email,
+          phone: authUser.phone,
+        } : undefined,
+      });
+      
+      // Optional: Show success message
+      // You could use a toast notification here instead of alert
+      alert("✅ PDF exported successfully!");
+    } catch (error) {
+      console.error("PDF export error:", error);
+      alert("❌ Failed to export PDF. Please try again.");
+    }
   };
 
   if (!user) {
@@ -477,12 +686,24 @@ export default function Dashboard() {
                   results.map((result) => (
                     <div
                       key={result.id}
-                      className="bg-white border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                      className="bg-white border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={() => {
+                        setCurrentResult(result);
+                        setShowResultModal(true);
+                      }}
                     >
                       <div className="bg-slate-50 p-4 border-b border-border">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-heading font-bold text-foreground">{result.type}</h4>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-heading font-bold text-foreground">{result.type}</h4>
+                              {result.status === 'success' && (
+                                <CheckCircle className="w-4 h-4 text-secondary" />
+                              )}
+                              {result.status === 'failed' && (
+                                <AlertCircle className="w-4 h-4 text-destructive" />
+                              )}
+                            </div>
                             <p className="text-sm text-muted-foreground mt-1">
                               Query: <code className="bg-white px-2 py-0.5 rounded text-xs font-mono">{result.query}</code>
                             </p>
@@ -491,8 +712,7 @@ export default function Dashboard() {
                             </p>
                           </div>
                           <div className="text-right">
-                            <CheckCircle className="w-5 h-5 text-secondary" />
-                            <p className="text-sm font-medium text-muted-foreground mt-2">
+                            <p className="text-sm font-medium text-muted-foreground">
                               -{result.creditsUsed} credits
                             </p>
                           </div>
@@ -519,7 +739,7 @@ export default function Dashboard() {
                   return (
                     <div
                       key={`${category}-${item.value}`}
-                      className={`${categoryData.bgColor} rounded-xl p-6 relative overflow-hidden group hover:shadow-2xl transition-all hover:scale-105 min-h-[200px]`}
+                      className={`${categoryData.bgColor} rounded-xl p-6 relative overflow-hidden group hover:shadow-2xl transition-all hover:scale-105 min-h-[200px] ${item.comingSoon ? 'opacity-75' : ''}`}
                     >
                       {/* Decorative Background Pattern */}
                       <div className="absolute inset-0 opacity-10">
@@ -527,8 +747,18 @@ export default function Dashboard() {
                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full -ml-12 -mb-12" />
                       </div>
 
+                      {/* Coming Soon Badge */}
+                      {item.comingSoon && (
+                        <div className="absolute top-4 left-4 bg-amber-500/90 backdrop-blur-sm px-2 py-1 rounded-md z-10 flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-white" />
+                          <p className="text-xs font-bold text-white uppercase">
+                            Coming Soon
+                          </p>
+                        </div>
+                      )}
+
                       {/* Category Badge - shown when searching */}
-                      {searchQuery && (
+                      {searchQuery && !item.comingSoon && (
                         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md z-10">
                           <p className="text-xs font-semibold text-foreground">
                             {categoryData.label}
@@ -543,12 +773,12 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      <div className={`relative z-10 ${searchQuery ? 'pt-6' : ''}`}>
+                      <div className={`relative z-10 ${searchQuery || item.comingSoon ? 'pt-6' : ''}`}>
                         <h3 className="text-white font-heading font-bold text-lg mb-2">
                           {item.label}
                         </h3>
                         <p className="text-white/90 text-sm mb-8 line-clamp-2">
-                          {item.value.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                          {item.value.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
                         </p>
 
                         <div className="flex items-center justify-between">
@@ -561,9 +791,13 @@ export default function Dashboard() {
                           <Button
                             size="sm"
                             onClick={() => handleScanNow(item)}
-                            className="bg-white text-foreground hover:bg-white/90 font-medium shadow-lg"
+                            className={`font-medium shadow-lg ${
+                              item.comingSoon 
+                                ? 'bg-white/50 text-white hover:bg-white/60 cursor-not-allowed'
+                                : 'bg-white text-foreground hover:bg-white/90'
+                            }`}
                           >
-                            Scan Now
+                            {item.comingSoon ? 'Soon' : 'Scan Now'}
                           </Button>
                         </div>
                       </div>
@@ -669,7 +903,7 @@ export default function Dashboard() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Query: <code className="bg-slate-100 px-2 py-1 rounded text-sm font-mono">{currentResult.query}</code>
-                  </p>
+                  </p>  
                 </div>
                 <div className="text-right pr-8">
                   <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-semibold">
@@ -690,21 +924,51 @@ export default function Dashboard() {
                   Verification Results
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {Object.entries(currentResult.data).map(([key, value]) => (
-                    <div key={key} className="bg-slate-50 border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                        {key.replace(/([A-Z])/g, " $1").trim()}
-                      </p>
-                      <p className="text-sm text-foreground font-medium">
-                        {typeof value === "boolean"
-                          ? value
-                            ? <span className="text-secondary">✓ Verified</span>
-                            : <span className="text-destructive">✗ Not Verified</span>
-                          : String(value)}
-                      </p>
-                    </div>
-                  ))}
+                  {Object.entries(flattenDataForDisplay(currentResult.data))
+                    .filter(([key]) => {
+                      const skipKeys = ['client_id', 'status', 'message_code', 'status_code', 'success', 'message'];
+                      return !skipKeys.some(skipKey => key.toLowerCase().includes(skipKey.toLowerCase()));
+                    })
+                    .map(([key, value]) => (
+                      <div key={key} className="bg-slate-50 border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                          {formatKeyName(key)}
+                        </p>
+                        <p className="text-sm text-foreground font-medium break-words whitespace-pre-wrap">
+                          {typeof value === "boolean" ? (
+                            value ? (
+                              <span className="inline-flex items-center gap-1 text-secondary">
+                                <CheckCircle className="w-4 h-4" />
+                                Verified
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-destructive">
+                                <X className="w-4 h-4" />
+                                Not Verified
+                              </span>
+                            )
+                          ) : value === 'N/A' ? (
+                            <span className="text-muted-foreground italic">N/A</span>
+                          ) : (
+                            String(value)
+                          )}
+                        </p>
+                      </div>
+                    ))}
                 </div>
+
+                {/* Special handling for full address if available */}
+                {currentResult.data?.address?.full && currentResult.data.address.full !== '' && (
+                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <Shield className="w-4 h-4" />
+                      Complete Address
+                    </p>
+                    <p className="text-sm text-blue-900 font-medium">
+                      {currentResult.data.address.full}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

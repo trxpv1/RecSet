@@ -301,3 +301,289 @@ export const verifyPayment = async (data: VerifyPaymentData): Promise<VerifyPaym
     body: JSON.stringify(data),
   });
 };
+
+// ==================== KYC/VERIFICATION API ====================
+
+export interface VerificationRequest {
+  id_number: string;
+}
+
+export interface GenericVerificationResponse {
+  success: boolean;
+  data: Record<string, any>;
+  status_code: number;
+  message: string | null;
+  credit_details?: {
+    user_price_deducted: number;
+    base_price_deducted: number;
+    company_profit_per_call: number;
+    user_remaining_credits: number;
+    company_remaining_credits: number;
+  };
+}
+
+/**
+ * PAN Comprehensive Verification
+ * POST /api/pan/pan-comprehensive
+ * Returns detailed PAN information including Aadhaar linkage, address, etc.
+ */
+export const verifyPANComprehensive = async (
+  panNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 PAN Comprehensive Verification:', {
+    panNumber: panNumber.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/pan/pan-comprehensive', {
+    method: 'POST',
+    body: JSON.stringify({ id_number: panNumber }),
+  });
+};
+
+/**
+ * DIN (Director Identification Number) Verification
+ * POST /api/corporate/din
+ * Returns director details including name, DOB, address, email, companies associated
+ */
+export const verifyCorporateDIN = async (
+  dinNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Corporate DIN Verification:', {
+    dinNumber: dinNumber.substring(0, 3) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/corporate/din', {
+    method: 'POST',
+    body: JSON.stringify({ id_number: dinNumber }),
+  });
+};
+
+/**
+ * Director Phone Number Lookup
+ * POST /api/corporate/director-phone
+ * Returns phone number associated with a DIN
+ */
+export const verifyDirectorPhone = async (
+  dinNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Director Phone Verification:', {
+    dinNumber: dinNumber.substring(0, 3) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/corporate/director-phone', {
+    method: 'POST',
+    body: JSON.stringify({ id_number: dinNumber }),
+  });
+};
+
+/**
+ * GSTIN Advanced Verification
+ * POST /api/corporate/gstin-advanced
+ * Returns comprehensive GSTIN details including business info, promoters, turnover, address
+ */
+export const verifyGSTINAdvanced = async (
+  gstinNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 GSTIN Advanced Verification:', {
+    gstinNumber: gstinNumber.substring(0, 5) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/corporate/gstin-advanced', {
+    method: 'POST',
+    body: JSON.stringify({ id_number: gstinNumber }),
+  });
+};
+
+/**
+ * Bank Verification by Mobile Number
+ * POST /api/bank-verification/bank-verification-mobile
+ * Returns bank account details linked to mobile number including IFSC details
+ */
+export const verifyBankByMobile = async (
+  mobileNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Bank Verification by Mobile:', {
+    mobileNumber: mobileNumber.substring(0, 3) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/bank-verification/bank-verification-mobile', {
+    method: 'POST',
+    body: JSON.stringify({ mobile_number: mobileNumber }),
+  });
+};
+
+/**
+ * RC Full Details Verification
+ * POST /api/rc/rc-full
+ * Returns comprehensive vehicle registration details including owner info, vehicle specs, insurance, permits
+ */
+export const verifyRCFull = async (
+  rcNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 RC Full Verification:', {
+    rcNumber: rcNumber.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/rc/rc-full', {
+    method: 'POST',
+    body: JSON.stringify({ id_number: rcNumber }),
+  });
+};
+
+/**
+ * RC to Mobile Number Lookup
+ * POST /api/rc/rc-to-mobile-number
+ * Returns mobile number linked to a vehicle RC number
+ */
+export const verifyRCToMobile = async (
+  rcNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 RC to Mobile Verification:', {
+    rcNumber: rcNumber.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/rc/rc-to-mobile-number', {
+    method: 'POST',
+    body: JSON.stringify({ rc_number: rcNumber }),
+  });
+};
+
+/**
+ * Chassis to RC Details Lookup
+ * POST /api/rc/chassis-to-rc
+ * Returns complete vehicle registration details from chassis number
+ */
+export const verifyChassisToRC = async (
+  chassisNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Chassis to RC Verification:', {
+    chassisNumber: chassisNumber.substring(0, 6) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/rc/chassis-to-rc', {
+    method: 'POST',
+    body: JSON.stringify({ vehicle_chasi_number: chassisNumber }),
+  });
+};
+
+/**
+ * Mobile to RC Lookup
+ * POST /api/rc/mobile-number-to-rc
+ * Returns RC numbers linked to a mobile number
+ */
+export const verifyMobileToRC = async (
+  mobileNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Mobile to RC Verification:', {
+    mobileNumber: mobileNumber.substring(0, 3) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/rc/mobile-number-to-rc', {
+    method: 'POST',
+    body: JSON.stringify({ mobile_number: mobileNumber }),
+  });
+};
+
+/**
+ * FASTag to RC Lookup
+ * POST /api/rc/fastag-to-rc
+ * Returns RC details for a given FASTag ID
+ */
+export const verifyFASTagToRC = async (
+  tagId: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 FASTag to RC Verification:', {
+    tagId: tagId.substring(0, 8) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/rc/fastag-to-rc', {
+    method: 'POST',
+    body: JSON.stringify({ tag_id: tagId }),
+  });
+};
+
+/**
+ * Voter ID Verification
+ * POST /api/voter-id
+ * Returns comprehensive voter information
+ */
+export const verifyVoterID = async (
+  voterId: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Voter ID Verification:', {
+    voterId: voterId.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/voter-id', {
+    method: 'POST',
+    body: JSON.stringify({ voter_id: voterId }),
+  });
+};
+
+/**
+ * Driving License Verification
+ * POST /api/driving-license
+ * Returns comprehensive driving license information
+ */
+export const verifyDrivingLicense = async (
+  licenseNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Driving License Verification:', {
+    licenseNumber: licenseNumber.substring(0, 6) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/driving-license', {
+    method: 'POST',
+    body: JSON.stringify({ license_number: licenseNumber }),
+  });
+};
+
+/**
+ * Mobile Intelligence
+ * POST /api/mobile-intelligence
+ * Returns comprehensive mobile intelligence data including personal info, addresses, emails, and identity documents
+ */
+export const verifyMobileIntelligence = async (
+  mobileNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Mobile Intelligence Verification:', {
+    mobileNumber: mobileNumber.substring(0, 3) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/mobile-intelligence', {
+    method: 'POST',
+    body: JSON.stringify({ mobile_number: mobileNumber }),
+  });
+};
+
+/**
+ * Mobile To Address
+ * POST /api/mobile-to-address
+ * Returns delivery addresses linked to a mobile number
+ */
+export const verifyMobileToAddress = async (
+  mobileNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Mobile to Address Verification:', {
+    mobileNumber: mobileNumber.substring(0, 3) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/mobile-to-address', {
+    method: 'POST',
+    body: JSON.stringify({ mobile_number: mobileNumber }),
+  });
+};
