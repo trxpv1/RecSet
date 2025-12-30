@@ -3,7 +3,8 @@
  * Handles HTTP requests, token management, and error handling
  */
 
-const BASE_URL = 'https://osint-ninja.vercel.app';
+// Use environment variable for API base URL (supports dev/staging/prod)
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://osint-ninja.vercel.app';
 
 // Helper to get auth token from localStorage
 export const getAuthToken = (): string | null => {
@@ -47,29 +48,66 @@ async function apiRequest<T>(
     url: `${BASE_URL}${endpoint}`,
     method: options.method || 'GET',
     body: options.body,
-    headers
+    headers: { ...headers, Authorization: token ? '[REDACTED]' : 'none' },
+    timestamp: new Date().toISOString()
   });
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
 
-  const data = await response.json();
+    // Try to parse JSON response
+    let data;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      // Non-JSON response (e.g., HTML error page)
+      const text = await response.text();
+      console.error('❌ Non-JSON response received:', {
+        status: response.status,
+        contentType,
+        bodyPreview: text.substring(0, 200)
+      });
+      throw new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 100)}`);
+    }
 
-  // Debug logging
-  console.log('📥 API Response:', {
-    status: response.status,
-    ok: response.ok,
-    data
-  });
+    // Debug logging
+    console.log('📥 API Response:', {
+      status: response.status,
+      ok: response.ok,
+      data,
+      timestamp: new Date().toISOString()
+    });
 
-  // Handle errors
-  if (!response.ok) {
-    throw new Error(data.error || 'Something went wrong');
+    // Handle errors
+    if (!response.ok) {
+      // Enhanced error logging for production debugging
+      console.error('❌ API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        error: data.error || data,
+        timestamp: new Date().toISOString()
+      });
+      
+      throw new Error(data.error || data.message || 'Something went wrong');
+    }
+
+    return data;
+  } catch (fetchError: any) {
+    // Network or parsing errors
+    console.error('❌ API Request Failed:', {
+      endpoint,
+      error: fetchError.message,
+      stack: fetchError.stack,
+      timestamp: new Date().toISOString()
+    });
+    throw fetchError;
   }
-
-  return data;
 }
 
 // ==================== TYPE DEFINITIONS ====================

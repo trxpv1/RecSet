@@ -126,7 +126,23 @@ export default function Wallet() {
           idempotency_key: idempotencyKey 
         });
         console.log('✅ Order created:', orderData);
+        
+        // PRODUCTION: Validate critical fields
+        if (!orderData.order_id || !orderData.razorpay_key_id) {
+          console.error('❌ Invalid order response:', orderData);
+          throw new Error('Invalid order data received from server');
+        }
       } catch (orderError: any) {
+        // Enhanced error logging for production debugging
+        console.error('❌ Order creation failed:', {
+          error: orderError,
+          message: orderError.message,
+          stack: orderError.stack,
+          timestamp: new Date().toISOString(),
+          amount: amount,
+          user: authUser?.email
+        });
+        
         toast({
           title: "Payment System Error",
           description: orderError.message || "Failed to create order. Please try again.",
@@ -151,7 +167,12 @@ export default function Wallet() {
           // STEP 3: Payment successful - verify on backend
           try {
             // Debug: Log what Razorpay returns
-            console.log('💳 Razorpay Response:', response);
+            console.log('💳 Razorpay Payment Response:', {
+              payment_id: response.razorpay_payment_id,
+              order_id: response.razorpay_order_id,
+              signature: response.razorpay_signature ? '[REDACTED]' : 'MISSING',
+              timestamp: new Date().toISOString()
+            });
             
             // Razorpay returns: payment_id, order_id, signature when order was created
             const verifyData = await verifyPayment({
@@ -190,9 +211,17 @@ export default function Wallet() {
               description: `${verifyData.credits_added} credits added to your wallet`,
             });
           } catch (error: any) {
+            console.error('❌ Payment verification failed:', {
+              error: error,
+              message: error.message,
+              payment_id: response.razorpay_payment_id,
+              order_id: response.razorpay_order_id,
+              timestamp: new Date().toISOString()
+            });
+            
             toast({
               title: "Payment Verification Failed",
-              description: error.message || "Failed to verify payment",
+              description: error.message || "Failed to verify payment. Please contact support with payment ID: " + response.razorpay_payment_id,
               variant: "destructive",
             });
           }
@@ -215,9 +244,21 @@ export default function Wallet() {
       const razorpay = new window.Razorpay(options);
       
       razorpay.on('payment.failed', (response: any) => {
+        // Enhanced error logging for Razorpay failures
+        console.error('❌ Razorpay Payment Failed:', {
+          code: response.error.code,
+          description: response.error.description,
+          source: response.error.source,
+          step: response.error.step,
+          reason: response.error.reason,
+          order_id: response.error.metadata?.order_id,
+          payment_id: response.error.metadata?.payment_id,
+          timestamp: new Date().toISOString()
+        });
+        
         toast({
           title: "Payment Failed",
-          description: response.error.description,
+          description: response.error.description || "Payment could not be processed",
           variant: "destructive",
         });
         setIsProcessing(false);
