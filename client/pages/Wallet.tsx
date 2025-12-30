@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createOrder, verifyPayment } from "@/lib/apiClient";
+import { verifyPayment, getAuthToken, createOrder } from "@/lib/apiClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   Coins,
@@ -37,8 +37,8 @@ export default function Wallet() {
   const { user: authUser, logout: authLogout, isAuthenticated, updateUser, isDemoUser } = useAuth();
   const { toast } = useToast();
   
-  // Razorpay Test Key
-  const RAZORPAY_KEY_ID = 'rzp_test_RxNELKhysZb3TF';
+  // Note: Razorpay key now comes from backend response (not hardcoded)
+  // This allows switching between test/live keys on the server
   
   const [user, setUser] = useState<User | null>(null);
   const [balance, setBalance] = useState(250);
@@ -80,10 +80,19 @@ export default function Wallet() {
   };
 
   const rechargeOptions = [
-    { name: "Silver", credits: 20, price: "₹299", popular: false },
-    { name: "Gold", credits: 20, price: "₹499", popular: true },
-    { name: "Diamond", credits: 40, price: "₹999", popular: false },
+    { name: "Silver", credits: 299, price: "₹299", popular: false },
+    { name: "Gold", credits: 499, price: "₹499", popular: true },
+    { name: "Diamond", credits: 999, price: "₹999", popular: false },
   ];
+
+  // Helper function to generate UUID for idempotency
+  const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  };
 
   const handleQuickRecharge = async (credits: number, price: string) => {
     try {
@@ -92,49 +101,65 @@ export default function Wallet() {
       // Calculate amount in INR (remove ₹ and comma)
       const amount = parseInt(price.replace('₹', '').replace(',', ''));
 
-      // ⚠️ CHECK: Backend payment endpoints availability
-      // Remove this check once /api/create-order and /api/verify-razorpay-payment are implemented
-      try {
-        const testResponse = await fetch('https://osint-ninja.vercel.app/api/create-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: 1 })
+      // Get auth token for payment verification
+      const authToken = getAuthToken();
+      if (!authToken) {
+        toast({
+          title: "Authentication Required",
+          description: "Please login to make a payment",
+          variant: "destructive",
         });
-        
-        if (!testResponse.ok && testResponse.status === 404) {
-          throw new Error('BACKEND_NOT_READY');
-        }
-      } catch (testError: any) {
-        if (testError.message === 'BACKEND_NOT_READY' || testError instanceof TypeError) {
-          toast({
-            title: "Payment System Unavailable",
-            description: "Backend payment endpoints (/api/create-order, /api/verify-razorpay-payment) need to be implemented. Contact backend team.",
-            variant: "destructive",
-          });
-          setIsProcessing(false);
-          return;
-        }
+        setIsProcessing(false);
+        return;
       }
 
-      // ⚠️ STEP 1: Create order on backend (BACKEND ENDPOINT REQUIRED)
-      const orderData = await createOrder({ amount });
+      // STEP 1: Create Razorpay order on backend with idempotency key
+      // WHY: Backend creates order server-side to prevent amount tampering
+      // WHY idempotency_key: Prevents duplicate orders if user clicks multiple times
+      const idempotencyKey = generateUUID();
+      console.log('🔑 Idempotency Key:', idempotencyKey);
       
-      // STEP 2: Open Razorpay checkout modal
+      let orderData;
+      try {
+        orderData = await createOrder({ 
+          amount,
+          idempotency_key: idempotencyKey 
+        });
+        console.log('✅ Order created:', orderData);
+      } catch (orderError: any) {
+        toast({
+          title: "Payment System Error",
+          description: orderError.message || "Failed to create order. Please try again.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      // STEP 2: Open Razorpay checkout with order_id
+      // WHY: Use razorpay_key_id from backend response (not hardcoded)
+      // This allows backend to switch between test/live keys
       const options = {
-        key: RAZORPAY_KEY_ID,
-        amount: orderData.amount * 100,  // Convert to paise
-        currency: orderData.currency,
-        order_id: orderData.order_id,
+        key: orderData.razorpay_key_id, // From backend response
+        amount: orderData.amount * 100,  // Amount in paise (INR * 100)
+        currency: orderData.currency || 'INR',
+        order_id: orderData.order_id, // Backend-created order ID for signature verification
         name: 'RecordSetu',
         description: `${credits} Credits Recharge`,
+        image: '/logo.svg', // Company logo
         handler: async (response: any) => {
           // STEP 3: Payment successful - verify on backend
           try {
+            // Debug: Log what Razorpay returns
+            console.log('💳 Razorpay Response:', response);
+            
+            // Razorpay returns: payment_id, order_id, signature when order was created
             const verifyData = await verifyPayment({
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
               amount: amount,
+              token: authToken,
             });
 
             // STEP 4: Update UI with new balance
@@ -266,6 +291,7 @@ export default function Wallet() {
         userRole={user.role}
         onLogout={handleLogout}
         variant="app"
+        credits={balance}
       />
 
       {/* Demo Mode Banner */}
@@ -335,7 +361,7 @@ export default function Wallet() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-6">
             {rechargeOptions.map((option) => (
               <div
-                key={option.credits}
+                key={option.name}
                 className="relative bg-white rounded-xl shadow-lg overflow-hidden border border-border hover:shadow-xl transition-all hover:scale-105"
               >
                 {/* Blue top border */}

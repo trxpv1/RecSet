@@ -214,12 +214,15 @@ export const authAPI = {
 
 export interface CreateOrderData {
   amount: number; // Amount in INR
+  idempotency_key: string; // Unique key to prevent duplicate orders (UUID format)
 }
 
 export interface CreateOrderResponse {
   order_id: string;
   amount: number;
   currency: string;
+  razorpay_key_id: string; // Key from backend response
+  message?: string;
 }
 
 export interface VerifyPaymentData {
@@ -227,6 +230,7 @@ export interface VerifyPaymentData {
   razorpay_order_id: string;
   razorpay_signature: string;
   amount: number;
+  token: string; // Auth token required in body per API docs
 }
 
 export interface VerifyPaymentResponse {
@@ -238,11 +242,11 @@ export interface VerifyPaymentResponse {
 
 /**
  * Create Razorpay order
- * Backend endpoint: POST /api/create-order
- * Status: ⚠️ NEEDS TO BE IMPLEMENTED
+ * Backend endpoint: POST /api/create_razorpay_order
+ * Status: ✅ IMPLEMENTED
  */
 export const createOrder = async (data: CreateOrderData): Promise<CreateOrderResponse> => {
-  return apiRequest<CreateOrderResponse>('/api/create-order', {
+  return apiRequest<CreateOrderResponse>('/api/create_razorpay_order', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -250,11 +254,11 @@ export const createOrder = async (data: CreateOrderData): Promise<CreateOrderRes
 
 /**
  * Verify Razorpay payment and add credits
- * Backend endpoint: POST /api/verify-razorpay-payment
- * Status: ⚠️ NEEDS TO BE IMPLEMENTED
+ * Backend endpoint: POST /api/verify_payment
+ * Per documentation: requires token in both Authorization header and request body
  */
 export const verifyPayment = async (data: VerifyPaymentData): Promise<VerifyPaymentResponse> => {
-  return apiRequest<VerifyPaymentResponse>('/api/verify-razorpay-payment', {
+  return apiRequest<VerifyPaymentResponse>('/api/verify_payment', {
     method: 'POST',
     body: JSON.stringify(data),
   });
