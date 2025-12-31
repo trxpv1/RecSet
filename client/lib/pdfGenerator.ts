@@ -36,8 +36,16 @@ const flattenDataForDisplay = (data: Record<string, any>, prefix = ''): Record<s
       if (value.length === 0) {
         flattened[fullKey] = 'N/A';
       } else if (value.every(item => typeof item === 'string' || typeof item === 'number')) {
+        // Simple array of strings/numbers - join them
         flattened[fullKey] = value.filter(v => v !== '').join(', ') || 'N/A';
+      } else if (value.every(item => typeof item === 'object' && item !== null)) {
+        // Array of objects - flatten each object with index
+        value.forEach((item, index) => {
+          const itemPrefix = `${fullKey} [${index + 1}]`;
+          Object.assign(flattened, flattenDataForDisplay(item, itemPrefix));
+        });
       } else {
+        // Mixed array or other complex structure - show as JSON
         flattened[fullKey] = JSON.stringify(value, null, 2);
       }
     } else if (typeof value === 'object' && value !== null) {
@@ -136,8 +144,11 @@ export const generatePDFReport = (verificationData: VerificationData): void => {
     const col1X = 10;
     const col2X = 110;
     const cardWidth = 90;
-    const cardHeight = 22;
+    const minCardHeight = 22;
     const gutter = 5;
+    const lineHeight = 5;
+    const labelHeight = 8;
+    const padding = 3;
     
     if (verificationData.data) {
       const flattenedData = flattenDataForDisplay(verificationData.data);
@@ -148,19 +159,37 @@ export const generatePDFReport = (verificationData: VerificationData): void => {
         return !skipKeys.some(skipKey => key.toLowerCase().includes(skipKey.toLowerCase()));
       });
 
-      // Draw data in a 2-column grid layout
+      // Process entries in pairs for 2-column layout
+      let leftColumnHeight = 0;
+      let rightColumnHeight = 0;
+      
       for (let i = 0; i < filteredEntries.length; i++) {
         const [key, value] = filteredEntries[i];
         
-        // Check if we need a new page
-        if (yPos > 270) {
-          doc.addPage();
-          yPos = 20;
-        }
-
         // Determine column position (alternate between left and right)
         const isLeftColumn = i % 2 === 0;
         const xPos = isLeftColumn ? col1X : col2X;
+
+        // Calculate content dimensions
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        const valueStr = String(value);
+        const maxWidth = cardWidth - (2 * padding);
+        const lines = doc.splitTextToSize(valueStr, maxWidth);
+        
+        // Calculate dynamic card height based on content
+        // Formula: label space + (number of lines * line height) + padding
+        const contentHeight = labelHeight + (lines.length * lineHeight) + padding;
+        const cardHeight = Math.max(minCardHeight, contentHeight);
+        
+        // Check if we need a new page
+        const requiredSpace = yPos + cardHeight;
+        if (requiredSpace > 270) {
+          doc.addPage();
+          yPos = 20;
+          leftColumnHeight = 0;
+          rightColumnHeight = 0;
+        }
 
         // Draw card background
         doc.setFillColor(248, 248, 248);
@@ -171,28 +200,35 @@ export const generatePDFReport = (verificationData: VerificationData): void => {
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(120, 120, 120);
-        doc.text(formatKeyName(key), xPos + 3, yPos + 5);
+        doc.text(formatKeyName(key), xPos + padding, yPos + 5);
 
-        // Draw value
+        // Draw value - show all lines (no truncation)
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(40, 40, 40);
         
-        // Handle long text by wrapping
-        const valueStr = String(value);
-        const maxWidth = cardWidth - 6;
-        const lines = doc.splitTextToSize(valueStr, maxWidth);
-        
-        // Only show first 2 lines to fit in card
-        const displayLines = lines.slice(0, 2);
-        displayLines.forEach((line: string, lineIndex: number) => {
-          doc.text(line, xPos + 3, yPos + 12 + (lineIndex * 5));
+        lines.forEach((line: string, lineIndex: number) => {
+          const lineY = yPos + 12 + (lineIndex * lineHeight);
+          doc.text(line, xPos + padding, lineY);
         });
 
-        // Move to next row after every 2 cards
-        if (!isLeftColumn) {
-          yPos += cardHeight + gutter;
+        // Track column heights for proper alignment
+        if (isLeftColumn) {
+          leftColumnHeight = cardHeight;
+        } else {
+          rightColumnHeight = cardHeight;
+          // Move to next row after both columns are filled
+          // Use the maximum height of the two cards
+          const maxHeight = Math.max(leftColumnHeight, rightColumnHeight);
+          yPos += maxHeight + gutter;
+          leftColumnHeight = 0;
+          rightColumnHeight = 0;
         }
+      }
+      
+      // If odd number of entries, move yPos for the last unpaired card
+      if (filteredEntries.length % 2 !== 0) {
+        yPos += leftColumnHeight + gutter;
       }
     } else {
       doc.setFontSize(10);

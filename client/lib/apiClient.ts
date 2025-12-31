@@ -91,10 +91,29 @@ async function apiRequest<T>(
         statusText: response.statusText,
         endpoint,
         error: data.error || data,
+        message_code: data.message_code,
         timestamp: new Date().toISOString()
       });
       
-      throw new Error(data.error || data.message || 'Something went wrong');
+      // Provide more specific error messages based on error type
+      let errorMessage = data.error || data.message || 'Something went wrong';
+      
+      // Check if it's a "verification failed" error (typically means no data found)
+      if (data.message_code === 'verification_failed' || errorMessage.toLowerCase().includes('verification failed')) {
+        errorMessage = 'Verification Failed';
+      } else if (response.status === 504 || errorMessage.toLowerCase().includes('timed out')) {
+        errorMessage = 'Request Timeout - The verification service is taking too long to respond';
+      } else if (response.status === 404) {
+        errorMessage = 'Service endpoint not found';
+      } else if (response.status === 401) {
+        errorMessage = 'Unauthorized - please login again';
+      } else if (response.status === 503) {
+        errorMessage = 'Service temporarily unavailable - please try again later';
+      } else if (response.status >= 500) {
+        errorMessage = 'Server error - please try again later';
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return data;
@@ -413,7 +432,7 @@ export const verifyBankByMobile = async (
 
   return apiRequest<GenericVerificationResponse>('/api/bank-verification/bank-verification-mobile', {
     method: 'POST',
-    body: JSON.stringify({ mobile: mobileNumber }),
+    body: JSON.stringify({ mobile_number: mobileNumber }),
   });
 };
 

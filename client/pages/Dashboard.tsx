@@ -6,6 +6,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag } from "@/lib/apiClient";
 import { generatePDFReport } from "@/lib/pdfGenerator";
 import {
@@ -43,8 +52,16 @@ const flattenDataForDisplay = (data: Record<string, any>, prefix = ''): Record<s
       if (value.length === 0) {
         flattened[fullKey] = 'N/A';
       } else if (value.every(item => typeof item === 'string' || typeof item === 'number')) {
+        // Simple array of strings/numbers - join them
         flattened[fullKey] = value.filter(v => v !== '').join(', ') || 'N/A';
+      } else if (value.every(item => typeof item === 'object' && item !== null)) {
+        // Array of objects - flatten each object with index
+        value.forEach((item, index) => {
+          const itemPrefix = `${fullKey} [${index + 1}]`;
+          Object.assign(flattened, flattenDataForDisplay(item, itemPrefix));
+        });
       } else {
+        // Mixed array or other complex structure - show as JSON
         flattened[fullKey] = JSON.stringify(value, null, 2);
       }
     } else if (typeof value === 'object' && value !== null) {
@@ -207,7 +224,13 @@ export default function Dashboard() {
   const [showEulaModal, setShowEulaModal] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { user: authUser, logout: authLogout, isAuthenticated, isDemoUser } = useAuth();
+  const [errorDialog, setErrorDialog] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    type: 'error' | 'warning' | 'info';
+  }>({ show: false, title: '', message: '', type: 'error' });
+  const { user: authUser, logout: authLogout, isAuthenticated, isDemoUser, updateUser } = useAuth();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -325,12 +348,22 @@ export default function Dashboard() {
   const handleScanNow = (verification: any) => {
     // Check if feature is coming soon
     if (verification.comingSoon) {
-      alert("🚧 Coming Soon!\n\nThis feature is currently under development and will be available soon.");
+      setErrorDialog({
+        show: true,
+        title: '🚧 Feature Coming Soon',
+        message: 'This verification service is currently under development and will be available soon. Stay tuned!',
+        type: 'info'
+      });
       return;
     }
     
     if (credits < verification.credits) {
-      alert("Insufficient credits. Please recharge your wallet.");
+      setErrorDialog({
+        show: true,
+        title: '💳 Insufficient Credits',
+        message: `This verification requires ${verification.credits} credits, but you only have ${credits} credits remaining. Please recharge your wallet to continue.`,
+        type: 'warning'
+      });
       return;
     }
     setSelectedVerification(verification);
@@ -441,6 +474,14 @@ export default function Dashboard() {
       const newCredits = response.credit_details?.user_remaining_credits ?? credits - newResult.creditsUsed;
       setCredits(newCredits);
       
+      // Update AuthContext so credits reflect everywhere (Header, etc.)
+      if (authUser) {
+        updateUser({
+          ...authUser,
+          credits: newCredits
+        });
+      }
+      
       setCurrentResult(newResult);
       setIsSearching(false);
       setShowQueryModal(false);
@@ -455,20 +496,50 @@ export default function Dashboard() {
         timestamp: new Date().toISOString(),
       });
       
-      let errorMessage = 'Verification failed. Please try again.';
+      let errorTitle = 'Verification Failed';
+      let errorMessage = 'Unable to complete verification. Please try again.';
+      let errorType: 'error' | 'warning' | 'info' = 'error';
       
-      if (error.message.includes('not yet implemented')) {
-        errorMessage = '🚧 This verification type is not yet available.\nPlease try another verification.';
+      // Check for "Verification Failed" - typically means no data found
+      if (error.message.includes('Verification Failed') || error.message.includes('verification_failed')) {
+        errorTitle = '🔍 No Data Found';
+        errorMessage = `No records found for the provided ${selectedVerification.label.toLowerCase()}. This could mean:\n\n• The information doesn't exist in our database\n• The input format may be incorrect\n• The data is not linked to any records\n\nPlease verify your input and try again. If you believe this is an error, contact support.`;
+        errorType = 'info';
+      } else if (error.message.includes('not yet implemented')) {
+        errorTitle = '🚧 Feature Unavailable';
+        errorMessage = 'This verification type is not yet available. Please try another verification service.';
+        errorType = 'info';
+      } else if (error.message.includes('Timeout') || error.message.includes('timed out') || error.message.includes('504')) {
+        errorTitle = '⏱️ Request Timeout';
+        errorMessage = `The verification service took too long to respond and timed out.\n\nThis usually happens when:\n• The external data provider is slow or overloaded\n• Network latency is high\n• The service is experiencing high traffic\n\n💡 Suggested Actions:\n• Wait a moment and try again\n• Try during off-peak hours\n• Contact support if the issue persists`;
+        errorType = 'warning';
       } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-        errorMessage = 'Session expired. Please login again.';
-        setTimeout(() => navigate('/login'), 2000);
-      } else if (error.message.includes('Network')) {
-        errorMessage = 'Network error. Please check your connection.';
+        errorTitle = '🔒 Session Expired';
+        errorMessage = 'Your session has expired for security reasons. You will be redirected to the login page.';
+        errorType = 'warning';
+        setTimeout(() => navigate('/login'), 3000);
+      } else if (error.message.includes('503') || error.message.includes('unavailable')) {
+        errorTitle = '🚫 Service Unavailable';
+        errorMessage = 'The verification service is temporarily unavailable. This is usually temporary.\n\nPlease try again in a few minutes.';
+        errorType = 'warning';
+      } else if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
+        errorTitle = '🌐 Connection Error';
+        errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+        errorType = 'error';
+      } else if (error.message.includes('required') || error.message.includes('invalid')) {
+        errorTitle = '⚠️ Invalid Input';
+        errorMessage = `There was an issue with your input: ${error.message}\n\nPlease check your entry and try again.`;
+        errorType = 'warning';
       } else if (error.message) {
         errorMessage = error.message;
       }
       
-      alert(`❌ Verification Error:\n\n${errorMessage}`);
+      setErrorDialog({
+        show: true,
+        title: errorTitle,
+        message: errorMessage,
+        type: errorType
+      });
       
       setIsSearching(false);
       setShowQueryModal(false);
@@ -477,7 +548,12 @@ export default function Dashboard() {
 
   const handleExportPDF = () => {
     if (!currentResult || !currentResult.data) {
-      alert("❌ No data available to export");
+      setErrorDialog({
+        show: true,
+        title: '📄 No Data Available',
+        message: 'There is no verification data available to export. Please complete a verification first.',
+        type: 'info'
+      });
       return;
     }
 
@@ -495,12 +571,20 @@ export default function Dashboard() {
         } : undefined,
       });
       
-      // Optional: Show success message
-      // You could use a toast notification here instead of alert
-      alert("✅ PDF exported successfully!");
+      setErrorDialog({
+        show: true,
+        title: '✅ Export Successful',
+        message: 'Your verification report has been exported as a PDF successfully!',
+        type: 'info'
+      });
     } catch (error) {
       console.error("PDF export error:", error);
-      alert("❌ Failed to export PDF. Please try again.");
+      setErrorDialog({
+        show: true,
+        title: '❌ Export Failed',
+        message: 'Unable to export the PDF report. Please try again or contact support if the issue persists.',
+        type: 'error'
+      });
     }
   };
 
@@ -984,6 +1068,31 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Error Dialog */}
+      <AlertDialog open={errorDialog.show} onOpenChange={(open) => setErrorDialog({ ...errorDialog, show: open })}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {errorDialog.type === 'error' && <AlertCircle className="w-5 h-5 text-destructive" />}
+              {errorDialog.type === 'warning' && <AlertCircle className="w-5 h-5 text-yellow-500" />}
+              {errorDialog.type === 'info' && <AlertCircle className="w-5 h-5 text-blue-500" />}
+              {errorDialog.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed whitespace-pre-line pt-2">
+              {errorDialog.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => setErrorDialog({ ...errorDialog, show: false })}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
