@@ -65,8 +65,12 @@ export default function Wallet() {
     
     // Map auth user to local user state
     if (authUser) {
+      const fullName = authUser.first_name && authUser.last_name 
+        ? `${authUser.first_name} ${authUser.last_name}`.trim()
+        : authUser.first_name || authUser.username || authUser.email.split('@')[0];
+      
       setUser({
-        name: `${authUser.first_name} ${authUser.last_name}`,
+        name: fullName,
         email: authUser.email,
         phone: authUser.phone || '+91 98765 43210',
       });
@@ -363,22 +367,41 @@ export default function Wallet() {
           </p>
         </div>
 
-        {/* Balance Card */}
-        <div className="bg-gradient-to-br from-primary to-primary/80 text-white rounded-2xl p-8 shadow-lg max-w-2xl">
-          <p className="text-white/80 text-sm mb-2">Available Credits</p>
-          <h2 className="text-5xl font-bold mb-4">{balance}</h2>
-          <p className="text-white/70 text-sm">
-            ≈ {(balance * 10).toLocaleString()} INR credit value
-          </p>
-          <div className="mt-6 pt-6 border-t border-white/20 flex items-center justify-between">
+        {/* Balance Card and Bulk Order Card */}
+        <div className="grid md:grid-cols-[1.5fr_1fr] gap-6">
+          {/* Balance Card */}
+          <div className="bg-gradient-to-br from-primary to-primary/80 text-white rounded-2xl p-8 shadow-lg">
+            <p className="text-white/80 text-sm mb-2">Available Credits</p>
+            <h2 className="text-5xl font-bold mb-4">{balance}</h2>
+            <p className="text-white/70 text-sm">
+              = Rs.{(balance).toLocaleString()}  credit value
+            </p>
+            <div className="mt-6 pt-6 border-t border-white/20 flex items-center justify-between">
+              <div>
+                <p className="text-white/70 text-xs">Username </p>
+                <p className="text-lg font-semibold">{user.name}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-white/70 text-xs">Mail ID</p>
+                <p className="text-lg font-semibold">{user.email || "Not provided"}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bulk Order Card */}
+          <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-8 shadow-lg flex flex-col justify-between">
             <div>
-              <p className="text-white/70 text-xs">Username </p>
-              <p className="text-lg font-semibold">{user.name}</p>
+              <h3 className="text-2xl font-bold mb-4">Bulk Orders</h3>
+              <p className="text-white/90 text-lg mb-6">
+                To get the credits in bulk
+              </p>
             </div>
-            <div className="text-right">
-              <p className="text-white/70 text-xs">Mail ID</p>
-              <p className="text-lg font-semibold">{user.email || "Not provided"}</p>
-            </div>
+            <Button
+              onClick={() => navigate("/contact")}
+              className="w-full bg-white text-amber-600 hover:bg-white/90 font-semibold py-6 text-lg shadow-md"
+            >
+              Contact Us
+            </Button>
           </div>
         </div>
 

@@ -75,7 +75,7 @@ export default function Contact() {
               </a>
             </div>
 
-            <div className="bg-white rounded-xl border border-border p-6 space-y-3">
+            {/* <div className="bg-white rounded-xl border border-border p-6 space-y-3">
               <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
                 <Phone className="w-5 h-5 text-secondary" />
               </div>
@@ -83,7 +83,7 @@ export default function Contact() {
               <a href="https://wa.me/+919303556894" className="text-secondary hover:text-secondary/80 transition">
                 +91 9303556894
               </a>
-            </div>
+            </div> */}
 
             {/* <div className="bg-white rounded-xl border border-border p-6 space-y-3">
               <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
