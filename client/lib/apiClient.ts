@@ -413,7 +413,7 @@ export const verifyBankByMobile = async (
 
   return apiRequest<GenericVerificationResponse>('/api/bank-verification/bank-verification-mobile', {
     method: 'POST',
-    body: JSON.stringify({ mobile_number: mobileNumber }),
+    body: JSON.stringify({ mobile: mobileNumber }),
   });
 };
 
@@ -565,7 +565,7 @@ export const verifyMobileIntelligence = async (
 
   return apiRequest<GenericVerificationResponse>('/api/prefill/prefill-by-mobile', {
     method: 'POST',
-    body: JSON.stringify({ mobile_number: mobileNumber }),
+    body: JSON.stringify({ mobile: mobileNumber }),
   });
 };
 
@@ -622,7 +622,7 @@ export const verifyFamPayUPIToMobile = async (
 
   return apiRequest<GenericVerificationResponse>('/api/fampay/upi-to-mobile', {
     method: 'POST',
-    body: JSON.stringify({ upi_id: upiId }),
+    body: JSON.stringify({ fam_id: upiId }),
   });
 };
 
