@@ -495,7 +495,7 @@ export const verifyMobileToRC = async (
 
 /**
  * FASTag to RC Lookup
- * POST /api/rc/fastag-to-rc
+ * POST /api/fastag/tag-to-rc
  * Returns RC details for a given FASTag ID
  */
 export const verifyFASTagToRC = async (
@@ -506,7 +506,7 @@ export const verifyFASTagToRC = async (
     timestamp: new Date().toISOString(),
   });
 
-  return apiRequest<GenericVerificationResponse>('/api/rc/fastag-to-rc', {
+  return apiRequest<GenericVerificationResponse>('/api/fastag/tag-to-rc', {
     method: 'POST',
     body: JSON.stringify({ tag_id: tagId }),
   });
@@ -533,7 +533,7 @@ export const verifyVoterID = async (
 
 /**
  * Driving License Verification
- * POST /api/driving-license
+ * POST /api/driving-license/driving-license
  * Returns comprehensive driving license information
  */
 export const verifyDrivingLicense = async (
@@ -544,7 +544,7 @@ export const verifyDrivingLicense = async (
     timestamp: new Date().toISOString(),
   });
 
-  return apiRequest<GenericVerificationResponse>('/api/driving-license', {
+  return apiRequest<GenericVerificationResponse>('/api/driving-license/driving-license', {
     method: 'POST',
     body: JSON.stringify({ license_number: licenseNumber }),
   });
@@ -552,7 +552,7 @@ export const verifyDrivingLicense = async (
 
 /**
  * Mobile Intelligence
- * POST /api/mobile-intelligence
+ * POST /api/prefill/prefill-by-mobile
  * Returns comprehensive mobile intelligence data including personal info, addresses, emails, and identity documents
  */
 export const verifyMobileIntelligence = async (
@@ -563,7 +563,7 @@ export const verifyMobileIntelligence = async (
     timestamp: new Date().toISOString(),
   });
 
-  return apiRequest<GenericVerificationResponse>('/api/mobile-intelligence', {
+  return apiRequest<GenericVerificationResponse>('/api/prefill/prefill-by-mobile', {
     method: 'POST',
     body: JSON.stringify({ mobile_number: mobileNumber }),
   });
@@ -585,5 +585,100 @@ export const verifyMobileToAddress = async (
   return apiRequest<GenericVerificationResponse>('/api/mobile-to-address', {
     method: 'POST',
     body: JSON.stringify({ mobile_number: mobileNumber }),
+  });
+};
+
+/**
+ * Aadhaar Family Members
+ * POST /api/aadhaar/family-members
+ * Returns family members linked to an Aadhaar number
+ */
+export const verifyAadhaarFamilyMembers = async (
+  aadhaarNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Aadhaar Family Members Verification:', {
+    aadhaarNumber: aadhaarNumber.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/aadhaar/family-members', {
+    method: 'POST',
+    body: JSON.stringify({ aadhaar_number: aadhaarNumber }),
+  });
+};
+
+/**
+ * FamPay UPI to Mobile
+ * POST /api/fampay/upi-to-mobile
+ * Returns mobile number linked to a FamPay UPI ID
+ */
+export const verifyFamPayUPIToMobile = async (
+  upiId: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 FamPay UPI to Mobile Verification:', {
+    upiId: upiId.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/fampay/upi-to-mobile', {
+    method: 'POST',
+    body: JSON.stringify({ upi_id: upiId }),
+  });
+};
+
+/**
+ * GSTIN Search by Company Name
+ * POST /api/gstin/search-by-company-name
+ * Returns GSTIN details for a company name
+ */
+export const verifyGSTINByCompanyName = async (
+  companyName: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 GSTIN Search by Company Name:', {
+    companyName: companyName.substring(0, 10) + '...',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/gstin/search-by-company-name', {
+    method: 'POST',
+    body: JSON.stringify({ company_name: companyName }),
+  });
+};
+
+/**
+ * GSTIN Search by PAN
+ * POST /api/gstin/search-by-pan
+ * Returns all GSTIN numbers linked to a PAN
+ */
+export const verifyGSTINByPAN = async (
+  panNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 GSTIN Search by PAN:', {
+    panNumber: panNumber.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/gstin/search-by-pan', {
+    method: 'POST',
+    body: JSON.stringify({ pan_number: panNumber }),
+  });
+};
+
+/**
+ * RC to FASTag
+ * POST /api/fastag/rc-to-tag
+ * Returns FASTag details for an RC number
+ */
+export const verifyRCToFASTag = async (
+  rcNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 RC to FASTag Verification:', {
+    rcNumber: rcNumber.substring(0, 6) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/fastag/rc-to-tag', {
+    method: 'POST',
+    body: JSON.stringify({ rc_number: rcNumber }),
   });
 };
