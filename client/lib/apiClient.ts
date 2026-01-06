@@ -101,6 +101,8 @@ async function apiRequest<T>(
       // Check if it's a "verification failed" error (typically means no data found)
       if (data.message_code === 'verification_failed' || errorMessage.toLowerCase().includes('verification failed')) {
         errorMessage = 'Verification Failed';
+      } else if (response.status === 403 || errorMessage.toLowerCase().includes('forbidden')) {
+        errorMessage = 'Access Denied - This API endpoint requires additional permissions. Please contact support or try a different verification method.';
       } else if (response.status === 504 || errorMessage.toLowerCase().includes('timed out')) {
         errorMessage = 'Request Timeout - The verification service is taking too long to respond';
       } else if (response.status === 404) {
@@ -318,6 +320,65 @@ export const verifyPayment = async (data: VerifyPaymentData): Promise<VerifyPaym
   return apiRequest<VerifyPaymentResponse>('/api/verify_payment', {
     method: 'POST',
     body: JSON.stringify(data),
+  });
+};
+
+// ==================== USER LOGS & TRANSACTIONS API ====================
+
+export interface UserLog {
+  id: number;
+  user_id: number;
+  input: string;
+  action: string;
+  timestamp: string;
+  response: string;
+  credits_used: number;
+}
+
+export interface LogsResponse {
+  logs: UserLog[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface Transaction {
+  timestamp: string;
+  amount: number;
+  credits: number;
+  status: string;
+  order_id: string;
+  payment_id: string | null;
+  completed_at: string | null;
+}
+
+export interface TransactionsResponse {
+  transactions: Transaction[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+/**
+ * Get User Logs
+ * GET /api/logs?page=1&limit=20
+ * Returns user activity logs with pagination
+ */
+export const getUserLogs = async (page: number = 1, limit: number = 20): Promise<LogsResponse> => {
+  return apiRequest<LogsResponse>(`/api/logs?page=${page}&limit=${limit}`, {
+    method: 'GET',
+  });
+};
+
+/**
+ * Get User Transactions
+ * GET /api/get_transactions?page=1&limit=20
+ * Returns user transaction history with pagination
+ */
+export const getUserTransactions = async (page: number = 1, limit: number = 20, status?: string): Promise<TransactionsResponse> => {
+  const statusParam = status ? `&status=${status}` : '';
+  return apiRequest<TransactionsResponse>(`/api/get_transactions?page=${page}&limit=${limit}${statusParam}`, {
+    method: 'GET',
   });
 };
 
@@ -622,7 +683,7 @@ export const verifyAadhaarFamilyMembers = async (
 
   return apiRequest<GenericVerificationResponse>('/api/aadhaar/family-members', {
     method: 'POST',
-    body: JSON.stringify({ aadhaar_number: aadhaarNumber }),
+    body: JSON.stringify({ aadhaar: aadhaarNumber }),
   });
 };
 

@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag } from "@/lib/apiClient";
+import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag, getUserLogs, type UserLog, type LogsResponse } from "@/lib/apiClient";
 import { generatePDFReport } from "@/lib/pdfGenerator";
 import {
   Search,
@@ -149,7 +149,7 @@ const VERIFICATION_CATEGORIES = {
     items: [
       { value: "bank-verification-mobile", label: "Bank Verification Mobile", credits: 11, comingSoon: false },
       { value: "fampay-upi-to-mobile", label: "FamPay UPI to Mobile", credits: 9, comingSoon: false },
-      { value: "gstin-by-company-name", label: "Company Name to GSTIN", credits: 5, comingSoon: false },
+      { value: "gstin-by-company-name", label: "Company Name to GSTIN ⚠️ Restricted", credits: 5, comingSoon: false },
       { value: "gstin-by-pan", label: "PAN to All GST", credits: 5, comingSoon: false },
       { value: "phone-to-bank", label: "Phone to Bank", credits: 3, comingSoon: true },
       { value: "bank-validation", label: "Bank Validation", credits: 2, comingSoon: true },
@@ -224,6 +224,10 @@ export default function Dashboard() {
   const [showEulaModal, setShowEulaModal] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userLogs, setUserLogs] = useState<UserLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsPage, setLogsPage] = useState(1);
+  const [logsTotalPages, setLogsTotalPages] = useState(1);
   const [errorDialog, setErrorDialog] = useState<{
     show: boolean;
     title: string;
@@ -231,6 +235,71 @@ export default function Dashboard() {
     type: 'error' | 'warning' | 'info';
   }>({ show: false, title: '', message: '', type: 'error' });
   const { user: authUser, logout: authLogout, isAuthenticated, isDemoUser, updateUser } = useAuth();
+
+  const fetchUserLogs = async (forceRefresh = false) => {
+    // Check cache first (unless force refresh)
+    if (!forceRefresh) {
+      const cachedData = sessionStorage.getItem('dashboard_logs');
+      if (cachedData) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          const cacheAge = Date.now() - parsed.timestamp;
+          // Use cache if less than 5 minutes old
+          if (cacheAge < 5 * 60 * 1000) {
+            setUserLogs(parsed.data);
+            setLogsTotalPages(parsed.totalPages);
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to parse cached logs:', e);
+        }
+      }
+    }
+
+    setLogsLoading(true);
+    try {
+      const response = await getUserLogs(logsPage, 20);
+      
+      // Filter out payment-related logs - only show verification activity logs
+      const verificationLogs = response.logs.filter(log => {
+        const action = log.action.toLowerCase();
+        // Exclude payment/transaction related logs
+        return !action.includes('payment') && 
+               !action.includes('recharge') && 
+               !action.includes('credit purchase') &&
+               !action.includes('transaction') &&
+               !action.includes('razorpay');
+      });
+      
+      setUserLogs(verificationLogs);
+      const totalPages = Math.ceil(response.total / response.limit);
+      setLogsTotalPages(totalPages);
+      
+      // Cache the data
+      sessionStorage.setItem('dashboard_logs', JSON.stringify({
+        data: verificationLogs,
+        totalPages,
+        timestamp: Date.now()
+      }));
+    } catch (error: any) {
+      console.error('Failed to fetch logs:', error);
+      setErrorDialog({
+        show: true,
+        title: 'Failed to Load Logs',
+        message: error.message || 'Unable to fetch activity logs. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  // Fetch user logs when viewing history
+  useEffect(() => {
+    if (activeCategory === 'logs' && isAuthenticated) {
+      fetchUserLogs();
+    }
+  }, [activeCategory, logsPage, isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -762,6 +831,119 @@ export default function Dashboard() {
             {/* CARDS GRID */}
             {activeCategory === "logs" ? (
               // HISTORY VIEW
+              <div className="space-y-4">
+                {logsLoading ? (
+                  <div className="text-center py-16">
+                    <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-muted-foreground">Loading activity logs...</p>
+                  </div>
+                ) : userLogs.length > 0 ? (
+                  <>
+                    {userLogs.map((log) => {
+                      // Convert UTC to IST (add 5 hours 30 minutes)
+                      const convertToIST = (utcDateString: string) => {
+                        try {
+                          console.log('Date string received:', utcDateString, 'for log:', log);
+                          
+                          if (!utcDateString || utcDateString === 'undefined' || utcDateString === 'null') {
+                            console.warn('Empty or invalid date string:', utcDateString);
+                            return 'Date not available';
+                          }
+                          
+                          const date = new Date(utcDateString);
+                          
+                          // Check if date is valid
+                          if (isNaN(date.getTime())) {
+                            console.error('Invalid date parsing:', utcDateString);
+                            return 'Invalid Date';
+                          }
+                          
+                          // Convert to IST by adding 5 hours 30 minutes (330 minutes)
+                          const istDate = new Date(date.getTime() + (330 * 60 * 1000));
+                          
+                          const day = istDate.getDate();
+                          const month = istDate.toLocaleString('en-US', { month: 'short' });
+                          const year = istDate.getFullYear();
+                          const hours = istDate.getHours();
+                          const minutes = istDate.getMinutes().toString().padStart(2, '0');
+                          const seconds = istDate.getSeconds().toString().padStart(2, '0');
+                          const ampm = hours >= 12 ? 'PM' : 'AM';
+                          const hour12 = hours % 12 || 12;
+                          
+                          return `${day} ${month} ${year}, ${hour12}:${minutes}:${seconds} ${ampm}`;
+                        } catch (error) {
+                          console.error('Error converting date:', error, 'Input:', utcDateString);
+                          return 'Invalid Date';
+                        }
+                      };
+                      
+                      return (
+                      <div
+                        key={log.id}
+                        className="bg-white border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                      >
+                        <div className="bg-slate-50 p-4 border-b border-border">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-heading font-bold text-foreground">{log.action}</h4>
+                                <CheckCircle className="w-4 h-4 text-secondary" />
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                -{log.credits_used} credits
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Query: <code className="bg-slate-100 px-2 py-0.5 rounded text-xs font-mono text-foreground">{log.input}</code>
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {convertToIST(log.timestamp)} IST
+                          </p>
+                        </div>
+                      </div>
+                      );
+                    })}
+                    
+                    {/* Pagination Controls */}
+                    {logsTotalPages > 1 && (
+                      <div className="flex items-center justify-center gap-4 mt-8">
+                        <button
+                          onClick={() => setLogsPage(prev => Math.max(1, prev - 1))}
+                          disabled={logsPage === 1}
+                          className="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90"
+                        >
+                          Previous
+                        </button>
+                        <span className="text-sm text-muted-foreground">
+                          Page {logsPage} of {logsTotalPages}
+                        </span>
+                        <button
+                          onClick={() => setLogsPage(prev => Math.min(logsTotalPages, prev + 1))}
+                          disabled={logsPage === logsTotalPages}
+                          className="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-16">
+                    <History className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+                    <p className="text-muted-foreground">No activity logs found</p>
+                    <p className="text-sm text-muted-foreground/70 mt-1">
+                      Your verification activities will appear here
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : results.length > 0 && activeCategory === "logs-old" ? (
+              // OLD HISTORY VIEW (kept for backwards compatibility)
               <div className="space-y-4">
                 {results.length > 0 ? (
                   results.map((result) => (
