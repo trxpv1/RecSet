@@ -22,7 +22,7 @@ export const removeAuthToken = (): void => {
   localStorage.removeItem('user');
 };
 
-// Generic API request handler
+// Generic API request handler with timeout support
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -53,10 +53,17 @@ async function apiRequest<T>(
   });
 
   try {
+    // Create an AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
       headers,
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     // Try to parse JSON response
     let data;
@@ -120,6 +127,16 @@ async function apiRequest<T>(
 
     return data;
   } catch (fetchError: any) {
+    // Handle abort/timeout errors
+    if (fetchError.name === 'AbortError') {
+      console.error('⏱️ Request Timeout:', {
+        endpoint,
+        timeout: '25s',
+        timestamp: new Date().toISOString()
+      });
+      throw new Error('Request Timeout - The verification service is taking too long to respond. Please try again in a moment.');
+    }
+    
     // Network or parsing errors
     console.error('❌ API Request Failed:', {
       endpoint,
@@ -512,7 +529,7 @@ export const verifyRCFull = async (
 
   return apiRequest<GenericVerificationResponse>('/api/rc/rc-full', {
     method: 'POST',
-    body: JSON.stringify({ id_number: rcNumber }),
+    body: JSON.stringify({ rc_number: rcNumber }),
   });
 };
 
@@ -626,7 +643,7 @@ export const verifyDrivingLicense = async (
 
   return apiRequest<GenericVerificationResponse>('/api/driving-license/driving-license', {
     method: 'POST',
-    body: JSON.stringify({ license_number: licenseNumber }),
+    body: JSON.stringify({ id_number: licenseNumber }),
   });
 };
 
@@ -672,19 +689,32 @@ export const verifyMobileToAddress = async (
  * Aadhaar Family Members
  * POST /api/aadhaar/family-members
  * Returns family members linked to an Aadhaar number
+ * Note: This API can be slow, so we add retry logic
  */
 export const verifyAadhaarFamilyMembers = async (
-  aadhaarNumber: string
+  aadhaarNumber: string,
+  retryCount = 0
 ): Promise<GenericVerificationResponse> => {
   console.log('🔍 Aadhaar Family Members Verification:', {
     aadhaarNumber: aadhaarNumber.substring(0, 4) + '****',
     timestamp: new Date().toISOString(),
+    attempt: retryCount + 1,
   });
 
-  return apiRequest<GenericVerificationResponse>('/api/aadhaar/family-members', {
-    method: 'POST',
-    body: JSON.stringify({ aadhaar: aadhaarNumber }),
-  });
+  try {
+    return await apiRequest<GenericVerificationResponse>('/api/aadhaar/family-members', {
+      method: 'POST',
+      body: JSON.stringify({ aadhaar: aadhaarNumber }),
+    });
+  } catch (error: any) {
+    // Retry on timeout (up to 2 retries = 3 total attempts)
+    if (error.message.includes('Timeout') && retryCount < 2) {
+      console.log(`⏱️ Timeout detected, retrying... (attempt ${retryCount + 2}/3)`);
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+      return verifyAadhaarFamilyMembers(aadhaarNumber, retryCount + 1);
+    }
+    throw error;
+  }
 };
 
 /**
@@ -761,4 +791,42 @@ export const verifyRCToFASTag = async (
     method: 'POST',
     body: JSON.stringify({ rc_number: rcNumber }),
   });
+};
+
+/**
+ * Health Check
+ * GET /api/health/
+ * Returns the health status of all APIs
+ */
+export interface HealthCheckResponse {
+  status: 'ok' | 'down' | 'partial';
+  message: string;
+  apis?: string[]; // List of down APIs if status is 'partial'
+}
+
+export const getHealthStatus = async (): Promise<HealthCheckResponse> => {
+  try {
+    const response = await fetch(`${BASE_URL}/api/health/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    const data = await response.json();
+    
+    // Handle different response formats
+    if (data.status === 'ok') {
+      return { status: 'ok', message: data.message || 'All systems operational' };
+    } else if (data.status === 'down') {
+      return { status: 'down', message: data.message || 'APIs are down', apis: [] };
+    } else if (data.apis && Array.isArray(data.apis)) {
+      return { status: 'partial', message: data.message || 'Some APIs are down', apis: data.apis };
+    } else {
+      return { status: 'ok', message: 'System operational' };
+    }
+  } catch (error) {
+    console.error('Health check failed:', error);
+    return { status: 'down', message: 'Unable to check system health', apis: [] };
+  }
 };

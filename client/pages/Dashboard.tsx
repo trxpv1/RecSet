@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag, getUserLogs, type UserLog, type LogsResponse } from "@/lib/apiClient";
+import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag, getUserLogs, getHealthStatus, type UserLog, type LogsResponse, type HealthCheckResponse } from "@/lib/apiClient";
 import { generatePDFReport } from "@/lib/pdfGenerator";
 import {
   Search,
@@ -234,6 +234,8 @@ export default function Dashboard() {
     message: string;
     type: 'error' | 'warning' | 'info';
   }>({ show: false, title: '', message: '', type: 'error' });
+  const [healthStatus, setHealthStatus] = useState<HealthCheckResponse | null>(null);
+  const [apiHealthMap, setApiHealthMap] = useState<Map<string, boolean>>(new Map());
   const { user: authUser, logout: authLogout, isAuthenticated, isDemoUser, updateUser } = useAuth();
 
   const fetchUserLogs = async (forceRefresh = false) => {
@@ -301,6 +303,61 @@ export default function Dashboard() {
     }
   }, [activeCategory, logsPage, isAuthenticated]);
 
+  // Fetch health status on mount and every 30 seconds
+  useEffect(() => {
+    const fetchHealth = async () => {
+      const health = await getHealthStatus();
+      setHealthStatus(health);
+      
+      // Create a map of API endpoints to their health status
+      const healthMap = new Map<string, boolean>();
+      
+      // Map of verification values to their API endpoints
+      const apiEndpointMap: Record<string, string> = {
+        'pan-info': '/api/pan/pan-comprehensive',
+        'aadhar-family-tree': '/api/aadhaar/family-members',
+        'driving-license': '/api/driving-license/driving-license',
+        'din-lookup': '/api/corporate/din',
+        'director-phone': '/api/corporate/director-phone',
+        'gstin-advanced': '/api/corporate/gstin-advanced',
+        'bank-verification-mobile': '/api/bank-verification/bank-verification-mobile',
+        'rc-full': '/api/rc/rc-full',
+        'rc-to-mobile': '/api/rc/rc-to-mobile-number',
+        'mobile-to-rc': '/api/rc/mobile-number-to-rc',
+        'fastag-to-rc': '/api/fastag/tag-to-rc',
+        'rc-to-fastag': '/api/fastag/rc-to-tag',
+        'fampay-upi-to-mobile': '/api/fampay/upi-to-mobile',
+        'gstin-by-company-name': '/api/corporate/gstin-by-company-name',
+        'gstin-by-pan': '/api/corporate/gstin-by-pan',
+        'mobile-intelligence': '/api/prefill/prefill-by-mobile',
+        'voter-id': '/api/voter-id',
+      };
+      
+      // If all systems are OK, mark all as working
+      if (health.status === 'ok') {
+        Object.keys(apiEndpointMap).forEach(key => healthMap.set(key, true));
+      } 
+      // If system is completely down, mark all as not working
+      else if (health.status === 'down') {
+        Object.keys(apiEndpointMap).forEach(key => healthMap.set(key, false));
+      }
+      // If partial, check which ones are down
+      else if (health.status === 'partial' && health.apis) {
+        Object.entries(apiEndpointMap).forEach(([verificationValue, endpoint]) => {
+          const isDown = health.apis!.some(downApi => endpoint.includes(downApi) || downApi.includes(endpoint));
+          healthMap.set(verificationValue, !isDown);
+        });
+      }
+      
+      setApiHealthMap(healthMap);
+    };
+    
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 30000); // Check every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
@@ -341,6 +398,20 @@ export default function Dashboard() {
       },
     ]);
   }, [navigate]);
+
+  // Helper function to check if a service is working
+  const isServiceWorking = (verificationValue: string): boolean | null => {
+    // If health check hasn't completed yet, return null (unknown)
+    if (apiHealthMap.size === 0) return null;
+    
+    // Check if this specific service has a status
+    const status = apiHealthMap.get(verificationValue);
+    
+    // If not in map, assume it's not a real API (like coming soon features)
+    if (status === undefined) return null;
+    
+    return status;
+  };
 
   const handleLogout = async () => {
     await authLogout();
@@ -445,6 +516,15 @@ export default function Dashboard() {
     if (!query || !selectedVerification) return;
 
     setIsSearching(true);
+    
+    // Show a toast after 5 seconds if the request is still pending
+    const slowRequestToast = setTimeout(() => {
+      toast({
+        title: "⏳ Please Wait",
+        description: "This verification is taking longer than usual. We're still processing your request...",
+        duration: 5000,
+      });
+    }, 5000);
 
     try {
       console.log('🚀 Starting verification:', {
@@ -520,8 +600,11 @@ export default function Dashboard() {
       });
 
       if (!response.success) {
+        clearTimeout(slowRequestToast); // Clear the slow request toast
         throw new Error(response.message || 'Verification failed');
       }
+
+      clearTimeout(slowRequestToast); // Clear the slow request toast on success
 
       const newResult: VerificationResult = {
         id: response.data.client_id || Date.now().toString(),
@@ -559,6 +642,8 @@ export default function Dashboard() {
       console.log('✅ Verification completed successfully');
 
     } catch (error: any) {
+      clearTimeout(slowRequestToast); // Clear the slow request toast on error
+      
       console.error('❌ Verification failed:', {
         error: error.message,
         type: selectedVerification.value,
@@ -817,15 +902,52 @@ export default function Dashboard() {
             </div>
 
             <div className="mb-8">
-              <h1 className="text-3xl font-heading font-bold text-foreground">
-                {searchQuery ? `Search Results for "${searchQuery}"` : currentCategoryData.label}
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                {searchQuery 
-                  ? `Found ${getFilteredItems().length} verification type${getFilteredItems().length !== 1 ? 's' : ''}`
-                  : 'Select a verification type to get started'
-                }
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-heading font-bold text-foreground">
+                    {searchQuery ? `Search Results for "${searchQuery}"` : currentCategoryData.label}
+                  </h1>
+                  <p className="text-muted-foreground mt-2">
+                    {searchQuery 
+                      ? `Found ${getFilteredItems().length} verification type${getFilteredItems().length !== 1 ? 's' : ''}`
+                      : 'Select a verification type to get started'
+                    }
+                  </p>
+                </div>
+                
+                {/* System Health Status Badge */}
+                {healthStatus && (
+                  <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
+                    healthStatus.status === 'ok' 
+                      ? 'bg-green-50 border-green-200' 
+                      : healthStatus.status === 'partial'
+                      ? 'bg-yellow-50 border-yellow-200'
+                      : 'bg-red-50 border-red-200'
+                  }`}>
+                    <div className="relative">
+                      <div className={`absolute inset-0 rounded-full ${
+                        healthStatus.status === 'ok' ? 'bg-green-400' : healthStatus.status === 'partial' ? 'bg-yellow-400' : 'bg-red-400'
+                      } ${healthStatus.status === 'ok' ? 'animate-ping' : 'animate-pulse'} opacity-75`} />
+                      <div className={`relative w-2.5 h-2.5 rounded-full ${
+                        healthStatus.status === 'ok' ? 'bg-green-500' : healthStatus.status === 'partial' ? 'bg-yellow-500' : 'bg-red-500'
+                      } border border-white`} />
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      healthStatus.status === 'ok' 
+                        ? 'text-green-700' 
+                        : healthStatus.status === 'partial'
+                        ? 'text-yellow-700'
+                        : 'text-red-700'
+                    }`}>
+                      {healthStatus.status === 'ok' 
+                        ? 'All Systems Operational' 
+                        : healthStatus.status === 'partial'
+                        ? `${healthStatus.apis?.length || 0} Service${(healthStatus.apis?.length || 0) !== 1 ? 's' : ''} Down`
+                        : 'System Maintenance'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* CARDS GRID */}
@@ -998,12 +1120,25 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {getFilteredItems().map(({ item, category, categoryData }) => {
                   const Icon = categoryData.icon;
+                  const serviceStatus = isServiceWorking(item.value);
                   
                   return (
                     <div
                       key={`${category}-${item.value}`}
                       className={`${categoryData.bgColor} rounded-xl p-6 relative overflow-hidden group hover:shadow-2xl transition-all hover:scale-105 min-h-[200px] ${item.comingSoon ? 'opacity-75' : ''}`}
                     >
+                      {/* Health Status LED Indicator */}
+                      {!item.comingSoon && serviceStatus !== null && (
+                        <div className="absolute top-3 right-3 z-20" title={serviceStatus ? 'Service Online' : 'Service Offline'}>
+                          <div className="relative">
+                            {/* Glowing effect */}
+                            <div className={`absolute inset-0 rounded-full ${serviceStatus ? 'bg-green-400' : 'bg-red-400'} ${serviceStatus ? 'animate-ping' : 'animate-pulse'} opacity-75`} />
+                            {/* LED dot */}
+                            <div className={`relative w-3 h-3 rounded-full ${serviceStatus ? 'bg-green-500' : 'bg-red-500'} border-2 border-white shadow-lg`} />
+                          </div>
+                        </div>
+                      )}
+
                       {/* Decorative Background Pattern */}
                       <div className="absolute inset-0 opacity-10">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16" />
