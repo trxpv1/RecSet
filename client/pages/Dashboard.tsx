@@ -1252,6 +1252,13 @@ export default function Dashboard() {
                     This verification will cost <strong>{selectedVerification.credits} credits</strong>
                   </p>
                 </div>
+                {selectedVerification.value === 'aadhar-family-tree' && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                    <p className="text-xs text-amber-900">
+                      Only family members linked to ration card can be viewed
+                    </p>
+                  </div>
+                )}
               </div>
 
               <Button
