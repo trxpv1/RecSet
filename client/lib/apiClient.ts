@@ -109,7 +109,12 @@ async function apiRequest<T>(
       if (data.message_code === 'verification_failed' || errorMessage.toLowerCase().includes('verification failed')) {
         errorMessage = 'Verification Failed';
       } else if (response.status === 403 || errorMessage.toLowerCase().includes('forbidden')) {
-        errorMessage = 'Access Denied - This API endpoint requires additional permissions. Please contact support or try a different verification method.';
+        // For 403 errors, use the actual server message if available (e.g., "Account not active")
+        // Only use generic message if no specific error is provided
+        if (!data.error && !data.message) {
+          errorMessage = 'Access Denied - This API endpoint requires additional permissions. Please contact support or try a different verification method.';
+        }
+        // Otherwise keep the original errorMessage from the server
       } else if (response.status === 504 || errorMessage.toLowerCase().includes('timed out')) {
         errorMessage = 'Request Timeout - The verification service is taking too long to respond';
       } else if (response.status === 404) {
