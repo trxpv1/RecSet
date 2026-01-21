@@ -799,6 +799,177 @@ export const verifyRCToFASTag = async (
 };
 
 /**
+ * Mobile to Multiple UPI
+ * POST /bank-verification/mobile-to-multiple-upi
+ * Returns multiple UPI IDs linked to a mobile number
+ */
+export const verifyMobileToMultipleUPI = async (
+  mobileNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Mobile to Multiple UPI Verification:', {
+    mobileNumber: mobileNumber.substring(0, 3) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/bank-verification/mobile-to-multiple-upi', {
+    method: 'POST',
+    body: JSON.stringify({ mobile_number: mobileNumber }),
+  });
+};
+
+/**
+ * Chassis to RC
+ * POST /rc/chassis-to-rc-details
+ * Returns RC details for a chassis number
+ */
+export const verifyChassisToRCDetails = async (
+  chassisNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Chassis to RC Verification:', {
+    chassisNumber: chassisNumber.substring(0, 6) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/rc/chassis-to-rc-details', {
+    method: 'POST',
+    body: JSON.stringify({ chassis_number: chassisNumber }),
+  });
+};
+
+/**
+ * Voter ID Text
+ * POST /voter-id/voter-id-info
+ * Returns voter ID information
+ */
+export const verifyVoterIDText = async (
+  voterId: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Voter ID Text Verification:', {
+    voterId: voterId.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/voter-id/voter-id-info', {
+    method: 'POST',
+    body: JSON.stringify({ id_number: voterId }),
+  });
+};
+
+/**
+ * CIN to PAN
+ * POST /corporate/cin-to-pan
+ * Returns PAN number for a CIN
+ */
+export const verifyCINToPAN = async (
+  cinNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 CIN to PAN Verification:', {
+    cinNumber: cinNumber.substring(0, 6) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/corporate/cin-to-pan', {
+    method: 'POST',
+    body: JSON.stringify({ cin_number: cinNumber }),
+  });
+};
+
+/**
+ * Mobile to UAN
+ * POST /income/mobile-to-uan
+ * Returns UAN (Universal Account Number) for a mobile number
+ */
+export const verifyMobileToUAN = async (
+  mobileNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Mobile to UAN Verification:', {
+    mobileNumber: mobileNumber.substring(0, 3) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/income/mobile-to-uan', {
+    method: 'POST',
+    body: JSON.stringify({ mobile_number: mobileNumber }),
+  });
+};
+
+/**
+ * Employment History UAN V2
+ * POST /income/uan-to-employment-history
+ * Returns employment history for a UAN
+ */
+export const verifyUANToEmploymentHistory = async (
+  uan: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 UAN to Employment History Verification:', {
+    uan: uan.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/income/uan-to-employment-history', {
+    method: 'POST',
+    body: JSON.stringify({ id_number: uan }),
+  });
+};
+
+/**
+ * PAN to UAN
+ * POST /pan/pan-to-uan
+ * Returns UAN for a PAN number
+ */
+export const verifyPANToUAN = async (
+  panNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 PAN to UAN Verification:', {
+    panNumber: panNumber.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/pan/pan-to-uan', {
+    method: 'POST',
+    body: JSON.stringify({ pan_number: panNumber }),
+  });
+};
+
+/**
+ * RC Owner History
+ * POST /rc/rc-owner-history
+ * Returns ownership history for an RC number
+ */
+export const verifyRCOwnerHistory = async (
+  rcNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 RC Owner History Verification:', {
+    rcNumber: rcNumber.substring(0, 4) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/rc/rc-owner-history', {
+    method: 'POST',
+    body: JSON.stringify({ rc_number: rcNumber }),
+  });
+};
+
+/**
+ * Mobile to GAS Connection
+ * POST /gas-connection/verify
+ * Returns gas connection details for a mobile number
+ */
+export const verifyMobileToGAS = async (
+  mobileNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Mobile to GAS Verification:', {
+    mobileNumber: mobileNumber.substring(0, 3) + '****',
+    timestamp: new Date().toISOString(),
+  });
+
+  return apiRequest<GenericVerificationResponse>('/api/gas-connection/verify', {
+    method: 'POST',
+    body: JSON.stringify({ mobile_number: mobileNumber }),
+  });
+};
+
+/**
  * Health Check
  * GET /api/health/
  * Returns the health status of all APIs

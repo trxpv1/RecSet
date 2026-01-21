@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag, getUserLogs, getHealthStatus, type UserLog, type LogsResponse, type HealthCheckResponse } from "@/lib/apiClient";
+import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag, verifyMobileToMultipleUPI, verifyChassisToRCDetails, verifyVoterIDText, verifyCINToPAN, verifyMobileToUAN, verifyUANToEmploymentHistory, verifyPANToUAN, verifyRCOwnerHistory, verifyMobileToGAS, getUserLogs, getHealthStatus, type UserLog, type LogsResponse, type HealthCheckResponse } from "@/lib/apiClient";
 import { generatePDFReport } from "@/lib/pdfGenerator";
 import {
   Search,
@@ -119,14 +119,15 @@ const VERIFICATION_CATEGORIES = {
     icon: Shield,
     bgColor: "bg-primary",
     items: [
-      { value: "aadhar-search", label: "Aadhar Search", credits: 2, comingSoon: true },
+      // { value: "aadhar-search", label: "Aadhar Search", credits: 2, comingSoon: true },
       { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 5, comingSoon: false },
       { value: "pan-info", label: "PAN Details", credits: 7, comingSoon: false },
-      { value: "voter-id", label: "Voter ID", credits: 2, comingSoon: true },
-      { value: "aadhar-to-pan", label: "Aadhar to PAN", credits: 2, comingSoon: true },
-      { value: "pan-validation", label: "PAN Validation", credits: 1, comingSoon: true },
-      { value: "phone-verification", label: "Phone Verification", credits: 1, comingSoon: true },
-      { value: "mobile-to-pan", label: "Mobile to PAN", credits: 2, comingSoon: true },
+      { value: "voter-id-text", label: "Voter ID Text", credits: 2, comingSoon: false },
+      // { value: "voter-id", label: "Voter ID", credits: 2, comingSoon: true },
+      // { value: "aadhar-to-pan", label: "Aadhar to PAN", credits: 2, comingSoon: true },
+      // { value: "pan-validation", label: "PAN Validation", credits: 1, comingSoon: true },
+      // { value: "phone-verification", label: "Phone Verification", credits: 1, comingSoon: true },
+      // { value: "mobile-to-pan", label: "Mobile to PAN", credits: 2, comingSoon: true },
     ],
   },
   vehicle: {
@@ -135,6 +136,8 @@ const VERIFICATION_CATEGORIES = {
     bgColor: "bg-secondary",
     items: [
       { value: "rc-full", label: "RC Full Details", credits: 7, comingSoon: false },
+      { value: "chassis-to-rc", label: "Chassis to RC", credits: 7, comingSoon: false },
+      { value: "rc-owner-history", label: "RC Owner History", credits: 5, comingSoon: false },
       { value: "rc-to-mobile", label: "RC to Mobile", credits: 15, comingSoon: false },
       { value: "mobile-to-rc", label: "Mobile to RC", credits: 31, comingSoon: false },
       { value: "fastag-to-rc", label: "FASTag to RC", credits: 3, comingSoon: false },
@@ -148,16 +151,17 @@ const VERIFICATION_CATEGORIES = {
     bgColor: "bg-accent",
     items: [
       { value: "bank-verification-mobile", label: "Bank Verification Mobile", credits: 11, comingSoon: false },
+      { value: "mobile-to-multiple-upi", label: "Mobile to Multiple UPI", credits: 5, comingSoon: false },
       { value: "fampay-upi-to-mobile", label: "FamPay UPI to Mobile", credits: 9, comingSoon: false },
       { value: "gstin-by-company-name", label: "Company Name to GSTIN ⚠️ Restricted", credits: 5, comingSoon: false },
       { value: "gstin-by-pan", label: "PAN to All GST", credits: 5, comingSoon: false },
-      { value: "phone-to-bank", label: "Phone to Bank", credits: 3, comingSoon: true },
-      { value: "bank-validation", label: "Bank Validation", credits: 2, comingSoon: true },
-      { value: "bank-ifsc", label: "Bank IFSC", credits: 1, comingSoon: true },
-      { value: "mobile-to-upi", label: "Mobile to UPI", credits: 2, comingSoon: true },
-      { value: "upi-details", label: "UPI Details", credits: 2, comingSoon: true },
-      { value: "gst-search", label: "GST Search", credits: 2, comingSoon: true },
-      { value: "gst-details", label: "GST Details", credits: 3, comingSoon: true },
+      // { value: "phone-to-bank", label: "Phone to Bank", credits: 3, comingSoon: true },
+      // { value: "bank-validation", label: "Bank Validation", credits: 2, comingSoon: true },
+      // { value: "bank-ifsc", label: "Bank IFSC", credits: 1, comingSoon: true },
+      // { value: "mobile-to-upi", label: "Mobile to UPI", credits: 2, comingSoon: true },
+      // { value: "upi-details", label: "UPI Details", credits: 2, comingSoon: true },
+      // { value: "gst-search", label: "GST Search", credits: 2, comingSoon: true },
+      // { value: "gst-details", label: "GST Details", credits: 3, comingSoon: true },
     ],
   },
   employment: {
@@ -165,10 +169,11 @@ const VERIFICATION_CATEGORIES = {
     icon: Briefcase,
     bgColor: "bg-secondary/80",
     items: [
-      { value: "pan-to-uan", label: "PAN to UAN", credits: 2, comingSoon: true },
-      { value: "pan-employment", label: "PAN Employment", credits: 2, comingSoon: true },
-      { value: "mobile-to-uan", label: "Mobile to UAN", credits: 2, comingSoon: true },
-      { value: "gas-connection", label: "Gas Connection", credits: 2, comingSoon: true },
+      { value: "pan-to-uan", label: "PAN to UAN", credits: 3, comingSoon: false },
+      { value: "mobile-to-uan", label: "Mobile to UAN", credits: 3, comingSoon: false },
+      { value: "uan-employment-history", label: "UAN Employment History V2", credits: 5, comingSoon: false },
+      { value: "mobile-to-gas", label: "Mobile to GAS Connection", credits: 3, comingSoon: false },
+      // { value: "pan-employment", label: "PAN Employment", credits: 2, comingSoon: true },
     ],
   },
   special: {
@@ -177,7 +182,7 @@ const VERIFICATION_CATEGORIES = {
     bgColor: "bg-emerald-600",
     items: [
       { value: "mobile-intelligence", label: "Mobile Intelligence", credits: 15, comingSoon: false },
-      { value: "mobile-to-address", label: "🔒 Mobile to Address", credits: 3, comingSoon: true },
+      // { value: "mobile-to-address", label: "🔒 Mobile to Address", credits: 3, comingSoon: true },
     ],
   },
   corporate: {
@@ -188,6 +193,7 @@ const VERIFICATION_CATEGORIES = {
       { value: "din-lookup", label: "DIN Lookup", credits: 13, comingSoon: false },
       { value: "director-phone", label: "Director Phone", credits: 16, comingSoon: false },
       { value: "gstin-advanced", label: "GSTIN Advanced", credits: 7, comingSoon: false },
+      { value: "cin-to-pan", label: "CIN to PAN", credits: 3, comingSoon: false },
     ],
   },
   court: {
@@ -195,8 +201,8 @@ const VERIFICATION_CATEGORIES = {
     icon: Scale,
     bgColor: "bg-destructive",
     items: [
-      { value: "court-records", label: "Court Records", credits: 4, comingSoon: true },
-      { value: "case-details", label: "Case Details", credits: 3, comingSoon: true },
+      // { value: "court-records", label: "Court Records", credits: 4, comingSoon: true },
+      // { value: "case-details", label: "Case Details", credits: 3, comingSoon: true },
     ],
   },
   logs: {
@@ -331,6 +337,16 @@ export default function Dashboard() {
         'gstin-by-pan': '/api/corporate/gstin-by-pan',
         'mobile-intelligence': '/api/prefill/prefill-by-mobile',
         'voter-id': '/api/voter-id',
+        // New APIs
+        'mobile-to-multiple-upi': '/api/bank-verification/mobile-to-multiple-upi',
+        'chassis-to-rc': '/api/rc/chassis-to-rc-details',
+        'voter-id-text': '/api/voter-id/voter-id-info',
+        'cin-to-pan': '/api/corporate/cin-to-pan',
+        'mobile-to-uan': '/api/income/mobile-to-uan',
+        'uan-employment-history': '/api/income/uan-to-employment-history',
+        'pan-to-uan': '/api/pan/pan-to-uan',
+        'rc-owner-history': '/api/rc/rc-owner-history',
+        'mobile-to-gas': '/api/gas-connection/verify',
       };
       
       // If all systems are OK, mark all as working
@@ -588,6 +604,33 @@ export default function Dashboard() {
       } else if (selectedVerification.value === 'mobile-to-address') {
         // ✅ REAL API CALL for Mobile to Address
         response = await verifyMobileToAddress(query);
+      } else if (selectedVerification.value === 'mobile-to-multiple-upi') {
+        // ✅ REAL API CALL for Mobile to Multiple UPI
+        response = await verifyMobileToMultipleUPI(query);
+      } else if (selectedVerification.value === 'chassis-to-rc') {
+        // ✅ REAL API CALL for Chassis to RC
+        response = await verifyChassisToRCDetails(query);
+      } else if (selectedVerification.value === 'voter-id-text') {
+        // ✅ REAL API CALL for Voter ID Text
+        response = await verifyVoterIDText(query);
+      } else if (selectedVerification.value === 'cin-to-pan') {
+        // ✅ REAL API CALL for CIN to PAN
+        response = await verifyCINToPAN(query);
+      } else if (selectedVerification.value === 'mobile-to-uan') {
+        // ✅ REAL API CALL for Mobile to UAN
+        response = await verifyMobileToUAN(query);
+      } else if (selectedVerification.value === 'uan-employment-history') {
+        // ✅ REAL API CALL for UAN to Employment History
+        response = await verifyUANToEmploymentHistory(query);
+      } else if (selectedVerification.value === 'pan-to-uan') {
+        // ✅ REAL API CALL for PAN to UAN
+        response = await verifyPANToUAN(query);
+      } else if (selectedVerification.value === 'rc-owner-history') {
+        // ✅ REAL API CALL for RC Owner History
+        response = await verifyRCOwnerHistory(query);
+      } else if (selectedVerification.value === 'mobile-to-gas') {
+        // ✅ REAL API CALL for Mobile to GAS Connection
+        response = await verifyMobileToGAS(query);
       } else {
         // Fallback for other types (temporary)
         throw new Error('This verification type is not yet implemented');
