@@ -10,7 +10,7 @@ import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogContent,
-  AlertDialogDescription,
+  AlertDialogDescription, 
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -131,7 +131,7 @@ const VERIFICATION_CATEGORIES = {
     ],
   },
   vehicle: {
-    label: "Vehicle & Challan Records",
+    label: "Vehicle Records",
     icon: Car,
     bgColor: "bg-secondary",
     items: [
@@ -172,7 +172,6 @@ const VERIFICATION_CATEGORIES = {
       { value: "pan-to-uan", label: "PAN to UAN", credits: 3, comingSoon: false },
       { value: "mobile-to-uan", label: "Mobile to UAN", credits: 3, comingSoon: false },
       { value: "uan-employment-history", label: "UAN Employment History V2", credits: 5, comingSoon: false },
-      { value: "mobile-to-gas", label: "Mobile to GAS Connection", credits: 3, comingSoon: false },
       // { value: "pan-employment", label: "PAN Employment", credits: 2, comingSoon: true },
     ],
   },
@@ -182,6 +181,7 @@ const VERIFICATION_CATEGORIES = {
     bgColor: "bg-emerald-600",
     items: [
       { value: "mobile-intelligence", label: "Mobile Intelligence", credits: 15, comingSoon: false },
+      { value: "mobile-to-gas", label: "Mobile to GAS Connection", credits: 3, comingSoon: false },
       // { value: "mobile-to-address", label: "🔒 Mobile to Address", credits: 3, comingSoon: true },
     ],
   },
@@ -196,17 +196,17 @@ const VERIFICATION_CATEGORIES = {
       { value: "cin-to-pan", label: "CIN to PAN", credits: 3, comingSoon: false },
     ],
   },
-  court: {
-    label: "Court Records",
-    icon: Scale,
-    bgColor: "bg-destructive",
-    items: [
-      // { value: "court-records", label: "Court Records", credits: 4, comingSoon: true },
-      // { value: "case-details", label: "Case Details", credits: 3, comingSoon: true },
-    ],
-  },
+  // court: {
+  //   label: "Court Records",
+  //   icon: Scale,
+  //   bgColor: "bg-destructive",
+  //   items: [
+  //     // { value: "court-records", label: "Court Records", credits: 4, comingSoon: true },
+  //     // { value: "case-details", label: "Case Details", credits: 3, comingSoon: true },
+  //   ],
+  // },
   logs: {
-    label: "Logs",
+    label: "Search History",
     icon: History,
     bgColor: "bg-muted-foreground",
     items: [
@@ -870,7 +870,10 @@ export default function Dashboard() {
                 return (
                   <button
                     key={category}
-                    onClick={() => setActiveCategory(category)}
+                    onClick={() => {
+                      setActiveCategory(category);
+                      setSearchQuery("");
+                    }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                       sidebarCollapsed ? 'justify-center' : ''
                     }`}

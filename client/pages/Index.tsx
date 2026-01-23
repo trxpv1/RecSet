@@ -28,18 +28,16 @@ export default function Index() {
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 animate-slide-up">
-              <div className="space-y-4">
-                <h1 className="text-5xl md:text-6xl font-heading font-bold text-foreground leading-tight">
-                  Verify Government Records
-                  <span className="block bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    Instantly
+              <div className="space-y-4 pb-4">
+                <h1 className="text-5xl md:text-6xl font-heading font-bold text-foreground leading-tight pb-3">
+                  Instant
+                   verified
+                  <span className="block bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent pb-2">
+                     investigations
                   </span>
                 </h1>
-                <p className="text-lg text-muted-foreground max-w-lg">
-                  Recordsetu is the trusted verification portal for LEA officers.
-                  Securely access government records, verify identities, and
-                  manage credits—all from one platform.
-                </p>
+                <p className="text-lg text-muted-foreground max-w-lg pb-2">
+A unified investigation suite for Law Enforcement Agencies.                </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -62,10 +60,10 @@ export default function Index() {
                 </Link>
               </div>
 
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              {/* <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <Shield className="w-5 h-5 text-secondary flex-shrink-0" />
                 <span>Bank-level security for all government record access</span>
-              </div>
+              </div> */}
             </div>
 
             {/* Hero Image */}
@@ -106,7 +104,7 @@ export default function Index() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl md:text-5xl font-heading font-bold text-foreground">
-              Powerful Features for LEA Officers
+              Powerful Features for Investigators  
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Everything you need to verify government records and manage your
@@ -124,8 +122,7 @@ export default function Index() {
                 Secure Verification
               </h3>
               <p className="text-muted-foreground">
-                Access Aadhar to PAN, phone to bank, and other critical
-                government records with bank-level encryption
+                Receive verification outputs within seconds through optimized, investigation-ready workflows—without manual delays.
               </p>
             </div>
 
@@ -202,60 +199,53 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Verification Types Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      {/* Clients Carousel Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-primary/10">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-heading font-bold text-foreground text-center mb-16">
-            Supported Verifications
+            Trusted for investigation by
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-xl font-heading font-bold text-primary flex items-center gap-2">
-                <CheckCircle className="w-5 h-5" /> Identity Verification
-              </h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-secondary rounded-full" />
-                  Aadhar to PAN linking
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-secondary rounded-full" />
-                  Phone number verification
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-secondary rounded-full" />
-                  Pan card validation
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-secondary rounded-full" />
-                  Driving license verification
-                </li>
-              </ul>
-            </div>
+          {/* Horizontal Scrolling Carousel */}
+          <div className="relative">
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-8 pb-4 min-w-min">
+                {/* Client 1 - Telangana Police */}
+                <div className="flex-shrink-0 w-44 h-44 bg-white rounded-xl border border-gray-200 flex items-center justify-center hover:shadow-lg transition-shadow p-4">
+                  <img
+                    src="https://cdn.builder.io/api/v1/image/assets%2F947f2237632a43429310ba11a6143374%2Ffcfbc341fe594b34b2d0e5471140aef6?format=webp&width=800&height=1200"
+                    alt="Telangana Police"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
 
-            <div className="space-y-4">
-              <h3 className="text-xl font-heading font-bold text-secondary flex items-center gap-2">
-                <CheckCircle className="w-5 h-5" /> Financial Verification
-              </h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                  Phone to Bank Account linking
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                  Bank account validation
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                  GST registration check
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                  Income tax records
-                </li>
-              </ul>
+                {/* Client 2 - AP Police */}
+                <div className="flex-shrink-0 w-44 h-44 bg-white rounded-xl border border-gray-200 flex items-center justify-center hover:shadow-lg transition-shadow p-4">
+                  <img
+                    src="https://cdn.builder.io/api/v1/image/assets%2F947f2237632a43429310ba11a6143374%2Fdc6661867f554c05a34f378b70d1cf39?format=webp&width=800&height=1200"
+                    alt="AP Police"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
+                {/* Client 3 - Delhi Police */}
+                <div className="flex-shrink-0 w-44 h-44 bg-white rounded-xl border border-gray-200 flex items-center justify-center hover:shadow-lg transition-shadow p-4">
+                  <img
+                    src="https://cdn.builder.io/api/v1/image/assets%2F947f2237632a43429310ba11a6143374%2F6047b665c13541af96b07cd9a12f1cec?format=webp&width=800&height=1200"
+                    alt="Delhi Police"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
+                {/* Client 4 - Maharashtra Police */}
+                <div className="flex-shrink-0 w-44 h-44 bg-white rounded-xl border border-gray-200 flex items-center justify-center hover:shadow-lg transition-shadow p-4">
+                  <img
+                    src="https://cdn.builder.io/api/v1/image/assets%2F947f2237632a43429310ba11a6143374%2F811860ea6d0c47048ba8f72929ba2165?format=webp&width=800&height=1200"
+                    alt="Maharashtra Police"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -266,10 +256,10 @@ export default function Index() {
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <div className="space-y-4">
             <h2 className="text-4xl md:text-5xl font-heading font-bold text-foreground">
-              Ready to streamline your verifications?
+              Ready to streamline your investigations ?
             </h2>
             <p className="text-lg text-muted-foreground">
-              Join hundreds of LEA officers trusting Recordsetu for secure government
+              Join hundreds of investigators trusting Recordsetu for secure government
               record verification
             </p>
           </div>
@@ -301,11 +291,10 @@ export default function Index() {
                 <img src="/logo.svg" alt="Recordsetu" className="h-8 w-auto" />
               </div>
               <p className="text-sm text-muted-foreground">
-                Secure government record verification for LEA officers
-              </p>
+                    One platform for verified investigations              </p>
             </div>
 
-            <div>
+            {/* <div>
               <h4 className="font-heading font-bold text-sm mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
@@ -324,7 +313,7 @@ export default function Index() {
                   </Link>
                 </li>
               </ul>
-            </div>
+            </div> */}
 
             <div>
               <h4 className="font-heading font-bold text-sm mb-4">Company</h4>
@@ -370,8 +359,8 @@ export default function Index() {
           </div>
 
           <div className="border-t border-border pt-8 flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
-            <p>&copy; 2024 Recordsetu. All rights reserved.</p>
-            <p>Secure Government Record Verification Platform</p>
+            <p>&copy; 2026 Recordsetu. All rights reserved.</p>
+            <p>A unified investigation suite for Investigation units</p>
           </div>
         </div>
       </footer>

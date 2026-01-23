@@ -118,9 +118,19 @@ async function apiRequest<T>(
       } else if (response.status === 504 || errorMessage.toLowerCase().includes('timed out')) {
         errorMessage = 'Request Timeout - The verification service is taking too long to respond';
       } else if (response.status === 404) {
-        errorMessage = 'Service endpoint not found';
+        // Special handling for forgot password endpoint
+        if (endpoint === '/api/forgot_password') {
+          errorMessage = 'User doesn\'t exist - No account found with this email address';
+        } else {
+          errorMessage = 'Service endpoint not found';
+        }
       } else if (response.status === 401) {
-        errorMessage = 'Unauthorized - please login again';
+        // Special handling for forgot password endpoint
+        if (endpoint === '/api/forgot_password') {
+          errorMessage = 'User doesn\'t exist - No account found with this email address';
+        } else {
+          errorMessage = 'Unauthorized - please login again';
+        }
       } else if (response.status === 503) {
         errorMessage = 'Service temporarily unavailable - please try again later';
       } else if (response.status >= 500) {

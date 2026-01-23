@@ -170,7 +170,7 @@ export default function Login() {
               </p>
             </div>
 
-            {/* Demo Credentials Notice */}
+            {/* Demo Credentials Notice
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-xs text-amber-900 space-y-3">
               <p className="font-medium mb-2">📋 Demo Credentials</p>
 
@@ -193,7 +193,7 @@ export default function Login() {
               <p className="text-amber-800 pt-2 border-t border-amber-200">
                 💡 Real API authentication will be used for registered users
               </p>
-            </div>
+            </div> */}
 
             {/* Security Notice */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-xs text-blue-900">

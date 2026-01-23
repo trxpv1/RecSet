@@ -26,6 +26,7 @@ import Pricing from "./pages/Pricing";
 import Pilot from "./pages/Pilot";
 import Contact from "./pages/Contact";
 import ForgotPassword from "./pages/ForgotPassword";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const AppContent = () => (
     <Route path="/pilot" element={<Pilot />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/profile" element={<Profile />} />
     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
     <Route path="*" element={<NotFound />} />
   </Routes>

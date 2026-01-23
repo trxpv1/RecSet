@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Header from "@/components/Header";
 import { Mail, ArrowLeft, ArrowRight } from "lucide-react";
+import { authAPI } from "@/lib/apiClient";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -30,11 +31,16 @@ export default function ForgotPassword() {
       return;
     }
 
-    // Simulate password reset request
-    setTimeout(() => {
+    try {
+      // Call backend API to send password reset email
+      await authAPI.forgotPassword({ email });
       setSuccess(true);
+    } catch (err: any) {
+      console.error("Forgot password error:", err);
+      setError(err.message || "Failed to send reset email. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   if (success) {
