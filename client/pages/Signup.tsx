@@ -351,7 +351,7 @@ export default function Signup() {
 
           {/* Footer Text */}
           <p className="text-center text-xs text-muted-foreground mt-6">
-            © 2026 Recordsetu. Secure Government Record Verification.
+            © 2026 Recordsetu. A unified investigation suite for Investigation units
           </p>
         </div>
       </div>

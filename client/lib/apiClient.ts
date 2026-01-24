@@ -544,7 +544,7 @@ export const verifyRCFull = async (
 
   return apiRequest<GenericVerificationResponse>('/api/rc/rc-full', {
     method: 'POST',
-    body: JSON.stringify({ rc_number: rcNumber }),
+    body: JSON.stringify({ id_number: rcNumber }),
   });
 };
 

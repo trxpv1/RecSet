@@ -523,6 +523,34 @@ export default function Wallet() {
           )}
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-background mt-8">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span>© 2024 CyberShastra. All rights reserved.</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <a href="/privacy" className="hover:text-foreground transition-colors">
+                Privacy Policy
+              </a>
+              <a href="/terms" className="hover:text-foreground transition-colors">
+                Terms of Service
+              </a>
+              <a href="https://docs.cybershastra.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+                Documentation
+              </a>
+              <a href="/contact" className="hover:text-foreground transition-colors">
+                Support
+              </a>
+            </div>
+            <div className="text-muted-foreground">
+              Version 2.4.1
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

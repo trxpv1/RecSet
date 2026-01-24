@@ -209,7 +209,7 @@ A unified investigation suite for Law Enforcement Agencies.                </p>
           {/* Horizontal Scrolling Carousel */}
           <div className="relative">
             <div className="overflow-x-auto scrollbar-hide">
-              <div className="flex gap-8 pb-4 min-w-min">
+              <div className="flex justify-center gap-8 pb-4 min-w-min">
                 {/* Client 1 - Telangana Police */}
                 <div className="flex-shrink-0 w-44 h-44 bg-white rounded-xl border border-gray-200 flex items-center justify-center hover:shadow-lg transition-shadow p-4">
                   <img
@@ -242,6 +242,24 @@ A unified investigation suite for Law Enforcement Agencies.                </p>
                   <img
                     src="https://cdn.builder.io/api/v1/image/assets%2F947f2237632a43429310ba11a6143374%2F811860ea6d0c47048ba8f72929ba2165?format=webp&width=800&height=1200"
                     alt="Maharashtra Police"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
+                {/* Client 5 - Madhya Pradesh Police */}
+                <div className="flex-shrink-0 w-44 h-44 bg-white rounded-xl border border-gray-200 flex items-center justify-center hover:shadow-lg transition-shadow p-4">
+                  <img
+                    src="/mp-police.png"
+                    alt="Madhya Pradesh Police"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
+                {/* Client 6 - Uttar Pradesh Police */}
+                <div className="flex-shrink-0 w-44 h-44 bg-white rounded-xl border border-gray-200 flex items-center justify-center hover:shadow-lg transition-shadow p-4">
+                  <img
+                    src="/up-police.png"
+                    alt="Uttar Pradesh Police"
                     className="w-full h-full object-contain"
                   />
                 </div>

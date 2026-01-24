@@ -21,16 +21,17 @@ export default function Privacy() {
           {/* Header */}
           <div className="space-y-4 border-b border-border pb-8">
             <h1 className="text-4xl font-heading font-bold text-foreground">
-              RecordSetu – Privacy Policy
+              PRIVACY POLICY
             </h1>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-muted-foreground">
-              <p>Last Updated: December 24, 2025</p>
+              <p>Effective Date: January 1, 2026</p>
+              <p>Last Updated: January 1, 2026</p>
             </div>
             <p className="text-muted-foreground leading-relaxed">
-              This Privacy Policy explains how RecordSetu ("we", "us", "our") collects, uses, stores, processes, and protects information when you access or use our website, applications, APIs, WhatsApp bot, or related services (collectively, the "Platform").
+              This Privacy Policy describes how RecordSetu ("Company", "we", "us", or "our") collects, uses, stores, shares, and protects information when you access or use our platform, websites, dashboards, APIs, or related services (collectively, the "Services").
             </p>
             <p className="text-muted-foreground font-semibold">
-              By accessing or using the Platform, you agree to the practices described in this Privacy Policy.
+              By using the Services, you consent to the practices described in this Privacy Policy.
             </p>
           </div>
 
@@ -38,254 +39,255 @@ export default function Privacy() {
           <section className="space-y-6">
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                1. SCOPE OF THIS POLICY
+                1. Purpose & Scope
               </h2>
-              <p className="text-muted-foreground mb-3">This Privacy Policy applies to:</p>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Registered users</li>
-                <li>Authorized government and law enforcement users</li>
-                <li>Website visitors</li>
-                <li>API and bot users</li>
-              </ul>
-              <p className="text-muted-foreground mt-3 font-semibold">
-                This Policy must be read together with the Terms of Service.
+              <p className="text-muted-foreground mb-3">
+                RecordSetu is a restricted-access investigative and intelligence platform.
               </p>
+              <p className="text-muted-foreground mb-3">
+                This Privacy Policy applies to all Users, including individuals accessing the Platform through an organization, agency, or enterprise authorization.
+              </p>
+              <p className="text-muted-foreground mb-3">We are committed to processing only the minimum personal data necessary for:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Secure access</li>
+                <li>Audit accountability</li>
+                <li>Legal and compliance obligations</li>
+              </ul>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                2. LEGAL FRAMEWORK
-              </h2>
-              <p className="text-muted-foreground mb-3">RecordSetu processes data in accordance with:</p>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Digital Personal Data Protection Act, 2023 (India)</li>
-                <li>Information Technology Act, 2000</li>
-                <li>Applicable rules, regulations, and lawful government directions</li>
-              </ul>
-              <p className="text-muted-foreground mt-3">
-                RecordSetu acts as a <span className="font-semibold text-foreground">data intermediary / processor / aggregator</span>.
-              </p>
-              <p className="text-muted-foreground mt-2 font-semibold">
-                The User is the Data Fiduciary for searches conducted on the Platform.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                3. INFORMATION WE COLLECT
+                2. Information We Collect
               </h2>
               
-              <h3 className="text-lg font-semibold text-foreground mb-2 mt-4">A. ACCOUNT INFORMATION</h3>
-              <p className="text-muted-foreground mb-2">We may collect:</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2 mt-4">A. Information You Provide Voluntarily</h3>
+              <p className="text-muted-foreground mb-2">Depending on onboarding and authorization requirements, we may collect:</p>
               <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Name</li>
+                <li>Full name</li>
                 <li>Official email address</li>
-                <li>Organization/agency name</li>
-                <li>Role or designation</li>
-                <li>Contact number</li>
-                <li>KYC or authorisation documents (where required)</li>
+                <li>Mobile number</li>
+                <li>Username and password</li>
+                <li>Organizational / agency affiliation</li>
+                <li>Identity proof solely for verification purposes</li>
               </ul>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <p className="text-sm text-blue-900 font-semibold">
+                  Important:
+                </p>
+                <p className="text-sm text-blue-800 mt-2">
+                  Identity proof documents are used only for verification and are deleted once the account is activated. We do not retain copies for any other purpose.
+                </p>
+              </div>
 
-              <h3 className="text-lg font-semibold text-foreground mb-2 mt-6">B. USAGE & SEARCH METADATA (NOT RESULTS)</h3>
-              <p className="text-muted-foreground mb-2">For security, audit, and compliance purposes, we may log:</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2 mt-6">B. Information Collected Automatically</h3>
+              <p className="text-muted-foreground mb-2">When you use the Platform, we may collect limited technical metadata, including:</p>
               <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Search type executed</li>
-                <li>Timestamp</li>
-                <li>Feature used</li>
-                <li>Credits consumed</li>
-                <li>User account ID</li>
+                <li>Login timestamps</li>
                 <li>IP address</li>
-                <li>Device/browser metadata</li>
-              </ul>
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
-                <p className="text-sm text-amber-900 font-semibold">
-                  Important: RecordSetu does not permanently store raw search result datasets by default.
-                </p>
-                <ul className="space-y-1 text-sm text-amber-800 list-disc list-inside mt-2">
-                  <li>We do NOT store raw personal data outputs as datasets.</li>
-                  <li>Only metadata and hashed audit logs are retained for compliance.</li>
-                </ul>
-              </div>
-
-              <h3 className="text-lg font-semibold text-foreground mb-2 mt-6">C. PAYMENT INFORMATION</h3>
-              <p className="text-muted-foreground">
-                RecordSetu does not store payment credentials. All payments are processed by third-party payment gateways. We only receive transaction references and status.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                4. WHAT WE DO NOT COLLECT
-              </h2>
-              <p className="text-muted-foreground mb-3">We do NOT:</p>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Perform Aadhaar authentication</li>
-                <li>Access UIDAI systems</li>
-                <li>Collect biometrics or OTPs</li>
-                <li>Scrape private or breached databases</li>
-                <li>Sell personal data</li>
-              </ul>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                5. PURPOSE OF DATA PROCESSING
-              </h2>
-              <p className="text-muted-foreground mb-3">We process data strictly for:</p>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Providing the requested search functionality</li>
-                <li>Account authentication and access control</li>
-                <li>Audit logging and abuse prevention</li>
-                <li>Subscription and credit management</li>
-                <li>Legal compliance and risk mitigation</li>
-                <li>Service improvement and diagnostics</li>
-              </ul>
-              <p className="text-muted-foreground mt-3 font-semibold">
-                We do not use data for advertising or profiling.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                6. USER RESPONSIBILITIES (CRITICAL)
-              </h2>
-              <p className="text-muted-foreground mb-3">By using RecordSetu, you confirm:</p>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>You have lawful authority, consent, or statutory power to perform searches</li>
-                <li>You will comply with DPDP Act purpose limitation</li>
-                <li>You will not misuse outputs for unlawful or personal reasons</li>
-              </ul>
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
-                <p className="text-sm text-red-900 font-semibold">
-                  RecordSetu is not responsible for unlawful searches conducted by users.
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                7. DATA RETENTION
-              </h2>
-              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Account data is retained while your account remains active.</li>
-                <li>Audit logs are retained for a limited period for:
-                  <ul className="ml-6 mt-1 space-y-1 list-circle">
-                    <li>Legal compliance</li>
-                    <li>Security monitoring</li>
-                    <li>Regulatory obligations</li>
-                  </ul>
-                </li>
+                <li>Device type and browser</li>
+                <li>Operating system</li>
+                <li>Session identifiers</li>
               </ul>
               <p className="text-muted-foreground mt-3">
-                Data may be deleted or anonymised after the retention period or upon account termination, unless legally required otherwise.
+                This information is used strictly for security monitoring, fraud detection, and system integrity.
+              </p>
+
+              <h3 className="text-lg font-semibold text-foreground mb-2 mt-6">C. Audit & Usage Logs</h3>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Hashed user identifiers</li>
+                <li>Hashed search references</li>
+                <li>Timestamp and module accessed</li>
+                <li>Credit consumption records</li>
+              </ul>
+              <p className="text-muted-foreground mt-3 font-semibold">
+                We do not permanently store search results or intelligence outputs.
+              </p>
+
+              <h3 className="text-lg font-semibold text-foreground mb-2 mt-6">D. Payment Information</h3>
+              <p className="text-muted-foreground">
+                RecordSetu does not collect or store payment card or banking details.
+              </p>
+              <p className="text-muted-foreground mt-2">
+                Payments are processed by third-party payment processors (Razorpay), who operate under their own privacy policies.
               </p>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                8. DATA SHARING & DISCLOSURE
+                3. Lawful Basis for Processing
               </h2>
-              <p className="text-muted-foreground mb-3 font-semibold">
-                We do NOT sell or rent data.
-              </p>
-              <p className="text-muted-foreground mb-2">We may disclose limited information:</p>
+              <p className="text-muted-foreground mb-3">We process personal data under one or more of the following lawful bases:</p>
               <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>To comply with lawful government or court orders</li>
-                <li>To prevent fraud, abuse, or security incidents</li>
-                <li>To payment gateways strictly for transaction processing</li>
-                <li>To infrastructure providers under strict confidentiality</li>
+                <li>Consent obtained during account creation and use</li>
+                <li>Legitimate interest for security, fraud prevention, and audit</li>
+                <li>Compliance with legal obligations under Indian law</li>
+                <li>Performance of authorized investigative, compliance, or due-diligence functions</li>
               </ul>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                9. DATA SECURITY MEASURES
+                4. How We Use Your Information
               </h2>
-              <p className="text-muted-foreground mb-3">RecordSetu implements reasonable and industry-standard safeguards including:</p>
+              <p className="text-muted-foreground mb-3">We use the collected information for the following purposes:</p>
               <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Encryption at rest and in transit</li>
-                <li>Hashed audit logs</li>
-                <li>Role-based access control</li>
-                <li>Activity monitoring</li>
-                <li>Infrastructure-level security controls</li>
+                <li>User authentication and access control</li>
+                <li>Account administration and support</li>
+                <li>Security monitoring and abuse prevention</li>
+                <li>Audit logging and compliance verification</li>
+                <li>Platform performance and reliability improvement</li>
+                <li>Communication regarding service updates, policy changes, or support issues</li>
+              </ul>
+              <p className="text-muted-foreground mt-3 font-semibold">
+                We do not use personal data for advertising, profiling, or behavioral tracking.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                5. Data Retention
+              </h2>
+              <p className="text-muted-foreground mb-3">We retain information only for as long as necessary:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Identity and account data: retained during the account lifecycle</li>
+                <li>Audit hash logs: retained for up to 3 years or as required by law</li>
+                <li>Access metadata: retained up to 12 months</li>
+                <li>Search results: not stored (zero-day retention)</li>
+              </ul>
+              <p className="text-muted-foreground mt-3">
+                When retention is no longer required, data is securely deleted or anonymized.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                6. Data Security Measures
+              </h2>
+              <p className="text-muted-foreground mb-3">RecordSetu implements industry-standard and advanced security controls, including:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>AES-256 encryption at rest</li>
+                <li>TLS 1.3 encryption in transit</li>
+                <li>Role-based access control (RBAC)</li>
+                <li>Multi-factor authentication (MFA)</li>
+                <li>Device binding and IP restrictions</li>
+                <li>Tamper-evident hashed audit logs</li>
+                <li>Periodic vulnerability assessments and penetration testing</li>
               </ul>
               <p className="text-muted-foreground mt-3 italic">
-                However, no system is 100% secure. Users accept inherent risks of internet usage.
+                Despite best efforts, no system can be guaranteed to be 100% secure.
               </p>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                10. USER RIGHTS UNDER DPDP ACT
+                7. Data Sharing & Disclosure
               </h2>
-              <p className="text-muted-foreground mb-3">Subject to applicable law, users may request:</p>
+              <p className="text-muted-foreground mb-3 font-semibold">
+                RecordSetu does not sell or commercially share personal data.
+              </p>
+              <p className="text-muted-foreground mb-2">Information may be disclosed only:</p>
               <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Access to account information</li>
-                <li>Correction of inaccurate account data</li>
-                <li>Account closure</li>
+                <li>To government authorities upon lawful request</li>
+                <li>Pursuant to judicial or statutory orders</li>
+                <li>For internal audit, security, or compliance purposes</li>
+                <li>In connection with a merger, acquisition, or asset transfer (with notice)</li>
               </ul>
               <p className="text-muted-foreground mt-3">
-                Requests can be made via official support channels. Certain data may be retained if legally required.
+                Any sharing is limited to the minimum necessary.
               </p>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                11. COOKIES & TRACKING
+                8. Cookies & Tracking
               </h2>
-              <p className="text-muted-foreground mb-3">RecordSetu may use minimal cookies or similar technologies for:</p>
               <ul className="space-y-2 text-muted-foreground list-disc list-inside">
-                <li>Session management</li>
-                <li>Authentication</li>
-                <li>Security</li>
+                <li>Only essential cookies are used for session management and authentication</li>
+                <li>No marketing, advertising, or third-party tracking cookies are used</li>
+                <li>Users may control cookies via browser settings</li>
               </ul>
-              <p className="text-muted-foreground mt-3 font-semibold">
-                We do not use behavioural tracking or advertising cookies.
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                9. User Rights (DPDP Act 2023)
+              </h2>
+              <p className="text-muted-foreground mb-3">Subject to applicable law and authorization level, Users may have the right to:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Access their account information and login history</li>
+                <li>Request correction of inaccurate personal data</li>
+                <li>Request deletion or anonymization where legally permissible</li>
+                <li>Obtain data portability in a structured format</li>
+                <li>Withdraw consent where applicable</li>
+              </ul>
+              <p className="text-muted-foreground mt-3">
+                Requests may be subject to identity verification and legal limitations.
               </p>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                12. THIRD-PARTY LINKS & DATA SOURCES
+                10. Data Breach Response
+              </h2>
+              <p className="text-muted-foreground mb-3">In the event of a data security incident:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Containment actions will be initiated promptly</li>
+                <li>Impacted users or organizations will be notified as required</li>
+                <li>Regulatory authorities (including CERT-In) will be informed where applicable</li>
+                <li>Remedial and preventive measures will be implemented</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                11. Children's Privacy
               </h2>
               <p className="text-muted-foreground">
-                The Platform may reference or link to third-party sources. RecordSetu is not responsible for third-party privacy practices or content accuracy.
+                The Platform is not intended for individuals under 18 years of age.
+              </p>
+              <p className="text-muted-foreground mt-2">
+                We do not knowingly collect data from minors. Any such data identified will be promptly deleted.
               </p>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                13. CHILDREN'S PRIVACY
+                12. Account Management & Deletion
+              </h2>
+              <p className="text-muted-foreground mb-3">
+                Users may request account review, correction, or termination by contacting us.
+              </p>
+              <p className="text-muted-foreground mb-2">Upon termination:</p>
+              <ul className="space-y-2 text-muted-foreground list-disc list-inside">
+                <li>Active account data will be deleted or anonymized</li>
+                <li>Certain audit or compliance records may be retained as legally required</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+                13. Changes to This Privacy Policy
               </h2>
               <p className="text-muted-foreground">
-                RecordSetu is not intended for individuals below 18 years of age. We do not knowingly collect children's data.
+                We may update this Privacy Policy periodically.
+              </p>
+              <p className="text-muted-foreground mt-2">
+                Material changes will be notified via the Platform or official communication. Continued use constitutes acceptance.
               </p>
             </div>
 
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                14. CHANGES TO THIS POLICY
+                14. Contact Information
               </h2>
-              <p className="text-muted-foreground">
-                We may update this Privacy Policy from time to time. Continued use of the Platform indicates acceptance of revised terms.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
-                15. CONTACT & GRIEVANCE REDRESSAL
-              </h2>
-              <p className="text-muted-foreground mb-3">For privacy concerns or requests, contact:</p>
+              <p className="text-muted-foreground mb-3">For privacy or data protection inquiries, contact:</p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <div className="space-y-2">
                   <p className="text-sm text-blue-900">
-                    <span className="font-semibold">Email:</span> privacy@recordsetu.com
+                    <span className="font-semibold">Data Protection Officer</span>
                   </p>
                   <p className="text-sm text-blue-900">
-                    <span className="font-semibold">Support:</span> support@recordsetu.com
-                  </p>
-                  <p className="text-sm text-blue-800 italic mt-3">
-                    Grievance Officer details may be updated as required under law.
+                    <span className="font-semibold">Email:</span> privacy@recordsetu.com
                   </p>
                 </div>
               </div>
@@ -293,7 +295,7 @@ export default function Privacy() {
 
             <div className="text-center pt-8 border-t border-border">
               <p className="text-sm text-muted-foreground">
-                © 2025 RecordSetu. All Rights Reserved.
+                © 2026 RecordSetu · Privacy Policy · Terms of Service · Refund Policy
               </p>
             </div>
           </section>

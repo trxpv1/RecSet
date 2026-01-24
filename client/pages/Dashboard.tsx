@@ -120,9 +120,9 @@ const VERIFICATION_CATEGORIES = {
     bgColor: "bg-primary",
     items: [
       // { value: "aadhar-search", label: "Aadhar Search", credits: 2, comingSoon: true },
-      { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 5, comingSoon: false },
-      { value: "pan-info", label: "PAN Details", credits: 7, comingSoon: false },
-      { value: "voter-id-text", label: "Voter ID Text", credits: 2, comingSoon: false },
+      { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 50, comingSoon: false, description: "Map related individuals linked through Aadhaar references." },
+      { value: "pan-info", label: "PAN Details", credits: 7, comingSoon: false, description: "Retrieve basic PAN profile and identity metadata." },
+      { value: "voter-id-text", label: "Voter ID Text", credits: 10, comingSoon: false, description: "Access voter registration and electoral roll information." },
       // { value: "voter-id", label: "Voter ID", credits: 2, comingSoon: true },
       // { value: "aadhar-to-pan", label: "Aadhar to PAN", credits: 2, comingSoon: true },
       // { value: "pan-validation", label: "PAN Validation", credits: 1, comingSoon: true },
@@ -135,14 +135,14 @@ const VERIFICATION_CATEGORIES = {
     icon: Car,
     bgColor: "bg-secondary",
     items: [
-      { value: "rc-full", label: "RC Full Details", credits: 7, comingSoon: false },
-      { value: "chassis-to-rc", label: "Chassis to RC", credits: 7, comingSoon: false },
-      { value: "rc-owner-history", label: "RC Owner History", credits: 5, comingSoon: false },
-      { value: "rc-to-mobile", label: "RC to Mobile", credits: 15, comingSoon: false },
-      { value: "mobile-to-rc", label: "Mobile to RC", credits: 31, comingSoon: false },
-      { value: "fastag-to-rc", label: "FASTag to RC", credits: 3, comingSoon: false },
-      { value: "rc-to-fastag", label: "RC to FASTag", credits: 3, comingSoon: false },
-      { value: "driving-license", label: "Driving License", credits: 7, comingSoon: false },
+      { value: "rc-full", label: "RC Full Details", credits: 18, comingSoon: false, description: "Access vehicle registration and ownership information." },
+      { value: "chassis-to-rc", label: "Chassis to RC", credits: 11, comingSoon: false, description: "Retrieve vehicle details using chassis number." },
+      { value: "rc-owner-history", label: "RC Owner History", credits: 8, comingSoon: false, description: "Track historical ownership records of a vehicle." },
+      { value: "rc-to-mobile", label: "RC to Mobile", credits: 15, comingSoon: false, description: "Trace contact numbers associated with a vehicle." },
+      { value: "mobile-to-rc", label: "Mobile to RC", credits: 31, comingSoon: false, description: "Identify vehicles linked to a mobile number." },
+      { value: "fastag-to-rc", label: "FASTag to RC", credits: 10, comingSoon: false, description: "Retrieve vehicle details using FASTag identifiers." },
+      { value: "rc-to-fastag", label: "RC to FASTag", credits: 15, comingSoon: false, description: "Map FASTag records linked to a vehicle." },
+      { value: "driving-license", label: "Driving License", credits: 15, comingSoon: false, description: "Verify license details and driving history." },
     ],
   },
   financial: {
@@ -150,11 +150,11 @@ const VERIFICATION_CATEGORIES = {
     icon: Coins,
     bgColor: "bg-accent",
     items: [
-      { value: "bank-verification-mobile", label: "Bank Verification Mobile", credits: 11, comingSoon: false },
-      { value: "mobile-to-multiple-upi", label: "Mobile to Multiple UPI", credits: 5, comingSoon: false },
-      { value: "fampay-upi-to-mobile", label: "FamPay UPI to Mobile", credits: 9, comingSoon: false },
-      { value: "gstin-by-company-name", label: "Company Name to GSTIN ⚠️ Restricted", credits: 5, comingSoon: false },
-      { value: "gstin-by-pan", label: "PAN to All GST", credits: 5, comingSoon: false },
+      { value: "bank-verification-mobile", label: "Bank Verification Mobile", credits: 11, comingSoon: false, description: "Verify bank account linkage with mobile number." },
+      { value: "mobile-to-multiple-upi", label: "Mobile to Multiple UPI", credits: 10, comingSoon: false, description: "Discover UPI IDs linked to a mobile number." },
+      { value: "fampay-upi-to-mobile", label: "FamPay UPI to Mobile", credits: 9, comingSoon: false, description: "Trace mobile numbers linked to FamPay UPI handles." },
+      { value: "gstin-by-company-name", label: "Company Name to GSTIN ⚠️ Restricted", credits: 15, comingSoon: false, description: "Search GST registrations by company name." },
+      { value: "gstin-by-pan", label: "PAN to All GST", credits: 5, comingSoon: false, description: "List GST registrations associated with a PAN." },
       // { value: "phone-to-bank", label: "Phone to Bank", credits: 3, comingSoon: true },
       // { value: "bank-validation", label: "Bank Validation", credits: 2, comingSoon: true },
       // { value: "bank-ifsc", label: "Bank IFSC", credits: 1, comingSoon: true },
@@ -169,9 +169,9 @@ const VERIFICATION_CATEGORIES = {
     icon: Briefcase,
     bgColor: "bg-secondary/80",
     items: [
-      { value: "pan-to-uan", label: "PAN to UAN", credits: 3, comingSoon: false },
-      { value: "mobile-to-uan", label: "Mobile to UAN", credits: 3, comingSoon: false },
-      { value: "uan-employment-history", label: "UAN Employment History V2", credits: 5, comingSoon: false },
+      { value: "pan-to-uan", label: "PAN to UAN", credits: 8, comingSoon: false, description: "Identify UAN linked to a PAN record." },
+      { value: "mobile-to-uan", label: "Mobile to UAN", credits: 8, comingSoon: false, description: "Trace employment identifiers using mobile numbers." },
+      { value: "uan-employment-history", label: "UAN Employment History V2", credits: 25, comingSoon: false, description: "Retrieve professional and employment history records." },
       // { value: "pan-employment", label: "PAN Employment", credits: 2, comingSoon: true },
     ],
   },
@@ -180,9 +180,11 @@ const VERIFICATION_CATEGORIES = {
     icon: Sparkles,
     bgColor: "bg-emerald-600",
     items: [
-      { value: "mobile-intelligence", label: "Mobile Intelligence", credits: 15, comingSoon: false },
-      { value: "mobile-to-gas", label: "Mobile to GAS Connection", credits: 3, comingSoon: false },
-      // { value: "mobile-to-address", label: "🔒 Mobile to Address", credits: 3, comingSoon: true },
+      { value: "mobile-intelligence", label: "Mobile Intelligence", credits: 30, comingSoon: false, description: "Generate a consolidated intelligence profile for a mobile number." },
+      { value: "mobile-to-gas", label: "Mobile to GAS Connection", credits: 8, comingSoon: false, description: "Verify gas connection details linked to a mobile number." },
+      // { value: "mobile-to-address", label: "🔒 Mobile to Address", credits: 35, comingSoon: true },
+      // NOTE: Mobile to Address is disabled due to backend API issue: 'User' object has no attribute 'company'
+      // Backend team needs to add 'company' field to User model or fix the endpoint logic
     ],
   },
   corporate: {
@@ -190,10 +192,10 @@ const VERIFICATION_CATEGORIES = {
     icon: Building2,
     bgColor: "bg-purple-600",
     items: [
-      { value: "din-lookup", label: "DIN Lookup", credits: 13, comingSoon: false },
-      { value: "director-phone", label: "Director Phone", credits: 16, comingSoon: false },
-      { value: "gstin-advanced", label: "GSTIN Advanced", credits: 7, comingSoon: false },
-      { value: "cin-to-pan", label: "CIN to PAN", credits: 3, comingSoon: false },
+      { value: "din-lookup", label: "DIN Lookup", credits: 20, comingSoon: false, description: "Access director identity and appointment details." },
+      { value: "director-phone", label: "Director Phone", credits: 25, comingSoon: false, description: "Retrieve contact details of company directors." },
+      { value: "gstin-advanced", label: "GSTIN Advanced", credits: 25, comingSoon: false, description: "Access comprehensive GST registration and filing data." },
+      { value: "cin-to-pan", label: "CIN to PAN", credits: 35, comingSoon: false, description: "Map corporate identity number to PAN records." },
     ],
   },
   // court: {
@@ -697,8 +699,12 @@ export default function Dashboard() {
       let errorMessage = 'Unable to complete verification. Please try again.';
       let errorType: 'error' | 'warning' | 'info' = 'error';
       
-      // Check for "Verification Failed" - typically means no data found
-      if (error.message.includes('Verification Failed') || error.message.includes('verification_failed')) {
+      // Check for backend model/attribute errors (e.g., 'User' object has no attribute 'company')
+      if (error.message.includes('has no attribute') || error.message.includes('object has no attribute')) {
+        errorTitle = '🔧 API Configuration Issue';
+        errorMessage = `A backend configuration error has been detected:\n\n"${error.message}"\n\n⚠️ This is a known issue with the backend API that requires server-side fixes.\n\n💡 Recommended Actions:\n• Contact the backend team at support@recordsetu.com\n• Report this error: "${error.message}"\n• Try a different verification service\n• Check back later after the issue is resolved\n\nCredits have NOT been deducted for this failed request.`;
+        errorType = 'warning';
+      } else if (error.message.includes('Verification Failed') || error.message.includes('verification_failed')) {
         errorTitle = '🔍 No Data Found';
         errorMessage = `No records found for the provided ${selectedVerification.label.toLowerCase()}. This could mean:\n\n• The information doesn't exist in our database\n• The input format may be incorrect\n• The data is not linked to any records\n\nPlease verify your input and try again. If you believe this is an error, contact support.`;
         errorType = 'info';
@@ -914,7 +920,7 @@ export default function Dashboard() {
         </aside>
 
         {/* MAIN CONTENT */}
-        <main className="flex-1 overflow-y-auto bg-slate-50">
+        <main className="flex-1 overflow-y-auto bg-slate-50 flex flex-col">
           {/* Demo Mode Banner */}
           {/* {isDemoUser && (
             <div className="bg-gradient-to-r from-amber-400 to-amber-500 text-amber-900 px-6 py-3 text-center font-medium shadow-md">
@@ -924,9 +930,10 @@ export default function Dashboard() {
             </div>
           )} */}
           
-          <div className="max-w-7xl mx-auto p-8">
-            {/* Search Bar */}
-            <div className="mb-6">
+          <div className="flex-1 w-full">
+            <div className="max-w-7xl mx-auto p-8">
+              {/* Search Bar */}
+              <div className="mb-6">
               <div className="relative max-w-2xl">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -1222,7 +1229,7 @@ export default function Dashboard() {
                           {item.label}
                         </h3>
                         <p className="text-white/90 text-sm mb-8 line-clamp-2">
-                          {item.value.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                          {item.description || item.value.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
                         </p>
 
                         <div className="flex items-center justify-between">
@@ -1250,7 +1257,36 @@ export default function Dashboard() {
                 })}
               </div>
             )}
+            </div>
           </div>
+
+          {/* Footer */}
+          <footer className="mt-8 border-t border-border bg-slate-50">
+            <div className="max-w-7xl mx-auto px-8 py-4">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span>© 2026 CyberShastra. All rights reserved.</span>
+                </div>
+                <div className="flex items-center gap-6">
+                  <a href="/privacy" className="hover:text-foreground transition-colors">
+                    Privacy Policy
+                  </a>
+                  <a href="/terms" className="hover:text-foreground transition-colors">
+                    Terms of Service
+                  </a>
+                  {/* <a href="https://docs.cybershastra.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+                    Documentation
+                  </a> */}
+                  <a href="/contact" className="hover:text-foreground transition-colors">
+                    Support
+                  </a>
+                </div>
+                <div className="text-muted-foreground">
+                  Version 1.0.1
+                </div>
+              </div>
+            </div>
+          </footer>
         </main>
       </div>
 
