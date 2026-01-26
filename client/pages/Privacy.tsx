@@ -283,9 +283,9 @@ export default function Privacy() {
               <p className="text-muted-foreground mb-3">For privacy or data protection inquiries, contact:</p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <div className="space-y-2">
-                  <p className="text-sm text-blue-900">
+                  {/* <p className="text-sm text-blue-900">
                     <span className="font-semibold">Data Protection Officer</span>
-                  </p>
+                  </p> */}
                   <p className="text-sm text-blue-900">
                     <span className="font-semibold">Email:</span> privacy@recordsetu.com
                   </p>

@@ -197,7 +197,7 @@ export default function Login() {
 
             {/* Security Notice */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-xs text-blue-900">
-              <p className="font-medium mb-1">🔒 Security Notice</p>
+              <p className="font-bold mb-1">Security Notice</p>
               <p>
                 Access is restricted to approved users acting under lawful authority.
 All searches and actions are recorded for audit and accountability

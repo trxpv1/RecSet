@@ -23,7 +23,7 @@ export default function Refund() {
             <h1 className="text-4xl font-heading font-bold text-foreground">
               Refund & Cancellation Policy
             </h1>
-            <p className="text-xl text-muted-foreground">(Wallet-Based Model)</p>
+            {/* <p className="text-xl text-muted-foreground">(Wallet-Based Model)</p> */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-muted-foreground">
               <p>Last Updated: December 24, 2025</p>
             </div>
@@ -223,9 +223,9 @@ export default function Refund() {
               <p className="text-muted-foreground mb-3">For billing or transaction issues, contact:</p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <div className="space-y-2">
-                  <p className="text-sm text-blue-900">
+                  {/* <p className="text-sm text-blue-900">
                     <span className="font-semibold">Email:</span> billing@recordsetu.com
-                  </p>
+                  </p> */}
                   <p className="text-sm text-blue-900">
                     <span className="font-semibold">Support:</span> support@recordsetu.com
                   </p>

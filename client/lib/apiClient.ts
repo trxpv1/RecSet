@@ -110,9 +110,11 @@ async function apiRequest<T>(
         errorMessage = 'Verification Failed';
       } else if (response.status === 403 || errorMessage.toLowerCase().includes('forbidden')) {
         // For 403 errors, use the actual server message if available (e.g., "Account not active")
-        // Only use generic message if no specific error is provided
+        // Provide specific guidance for restricted API endpoints
         if (!data.error && !data.message) {
-          errorMessage = 'Access Denied - This API endpoint requires additional permissions. Please contact support or try a different verification method.';
+          errorMessage = 'Forbidden Access - This API requires account activation or special permissions. Please contact support to enable this feature.';
+        } else if (data.error && data.error.toLowerCase().includes('company')) {
+          errorMessage = 'Account Setup Required - Your account needs additional configuration. Please contact support to activate premium features.';
         }
         // Otherwise keep the original errorMessage from the server
       } else if (response.status === 504 || errorMessage.toLowerCase().includes('timed out')) {
@@ -793,19 +795,40 @@ export const verifyGSTINByPAN = async (
  * RC to FASTag
  * POST /api/fastag/rc-to-tag
  * Returns FASTag details for an RC number
+ * Note: This API can be slow, so we add retry logic and extended timeout
  */
 export const verifyRCToFASTag = async (
-  rcNumber: string
+  rcNumber: string,
+  retryCount = 0
 ): Promise<GenericVerificationResponse> => {
   console.log('🔍 RC to FASTag Verification:', {
     rcNumber: rcNumber.substring(0, 6) + '****',
     timestamp: new Date().toISOString(),
+    attempt: retryCount + 1,
   });
 
-  return apiRequest<GenericVerificationResponse>('/api/fastag/rc-to-tag', {
-    method: 'POST',
-    body: JSON.stringify({ rc_number: rcNumber }),
-  });
+  try {
+    // Create an AbortController with extended timeout for this slow API
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 40000); // 40 second timeout
+
+    const response = await apiRequest<GenericVerificationResponse>('/api/fastag/rc-to-tag', {
+      method: 'POST',
+      body: JSON.stringify({ id_number: rcNumber }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error: any) {
+    // Retry on timeout (up to 2 retries = 3 total attempts)
+    if (error.message.includes('Timeout') && retryCount < 2) {
+      console.log(`⏱️ Timeout detected, retrying... (attempt ${retryCount + 2}/3)`);
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+      return verifyRCToFASTag(rcNumber, retryCount + 1);
+    }
+    throw error;
+  }
 };
 
 /**
@@ -956,7 +979,7 @@ export const verifyRCOwnerHistory = async (
 
   return apiRequest<GenericVerificationResponse>('/api/rc/rc-owner-history', {
     method: 'POST',
-    body: JSON.stringify({ rc_number: rcNumber }),
+    body: JSON.stringify({ id_number: rcNumber }),
   });
 };
 
@@ -964,18 +987,24 @@ export const verifyRCOwnerHistory = async (
  * Mobile to GAS Connection
  * POST /gas-connection/verify
  * Returns gas connection details for a mobile number
+ * Requires mobile_number and provider_name (e.g., "Indane", "HP Gas", "Bharat Gas")
  */
 export const verifyMobileToGAS = async (
-  mobileNumber: string
+  mobileNumber: string,
+  providerName: string = "Indane"
 ): Promise<GenericVerificationResponse> => {
   console.log('🔍 Mobile to GAS Verification:', {
     mobileNumber: mobileNumber.substring(0, 3) + '****',
+    provider: providerName,
     timestamp: new Date().toISOString(),
   });
 
   return apiRequest<GenericVerificationResponse>('/api/gas-connection/verify', {
     method: 'POST',
-    body: JSON.stringify({ mobile_number: mobileNumber }),
+    body: JSON.stringify({ 
+      mobile_number: mobileNumber,
+      provider_name: providerName 
+    }),
   });
 };
 

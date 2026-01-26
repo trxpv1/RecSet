@@ -203,7 +203,7 @@ A unified investigation suite for Law Enforcement Agencies.                </p>
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-primary/10">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-heading font-bold text-foreground text-center mb-16">
-            Trusted for investigation by
+            Trusted by Investigators From
           </h2>
 
           {/* Horizontal Scrolling Carousel */}

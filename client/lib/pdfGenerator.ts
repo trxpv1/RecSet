@@ -133,14 +133,44 @@ export const generatePDFReport = (verificationData: VerificationData): void => {
     doc.setDrawColor(220, 220, 220);
     doc.line(10, 48, 200, 48);
 
+    // --- CONFIDENTIAL ALERT BOX ---
+    let yPos = 53;
+    const alertBoxHeight = 22;
+    
+    // Draw red border box
+    doc.setDrawColor(220, 38, 38); // Red border
+    doc.setFillColor(254, 226, 226); // Light red background
+    doc.setLineWidth(0.5);
+    doc.rect(10, yPos, 190, alertBoxHeight, 'FD');
+    
+    // Alert heading
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(185, 28, 28); // Dark red text
+    doc.text("⚠ CONFIDENTIAL – AUTHORIZED USE ONLY", 105, yPos + 5, { align: 'center' });
+    
+    // Alert message
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(127, 29, 29);
+    const alertMessage = "This data is intended exclusively for authorised investigative purposes. Any sharing, forwarding, or storage outside official government systems Including WhatsApp, Telegram, personal email, or cloud services, is prohibited and may attract legal consequences.";
+    const alertLines = doc.splitTextToSize(alertMessage, 180);
+    let alertY = yPos + 10;
+    alertLines.forEach((line: string) => {
+      doc.text(line, 105, alertY, { align: 'center' });
+      alertY += 3.5;
+    });
+    
+    yPos = yPos + alertBoxHeight + 5;
+
     // --- Verification Results Title ---
     doc.setFontSize(12);
     doc.setTextColor(50, 50, 50);
     doc.setFont("helvetica", "bold");
-    doc.text("VERIFICATION RESULTS", 10, 58);
+    doc.text("VERIFICATION RESULTS", 10, yPos + 5);
 
     // --- Data Grid ---
-    let yPos = 68;
+    yPos = yPos + 15;
     const col1X = 10;
     const col2X = 110;
     const cardWidth = 90;
@@ -235,6 +265,74 @@ export const generatePDFReport = (verificationData: VerificationData): void => {
       doc.setTextColor(100, 100, 100);
       doc.text("No verification data available", col1X, yPos);
     }
+
+    // --- LEGAL DISCLAIMER BOX ---
+    // Add some space before disclaimer
+    yPos += 10;
+    
+    // Check if we need a new page for disclaimer
+    if (yPos > 180) {
+      doc.addPage();
+      yPos = 20;
+    }
+    
+    const disclaimerBoxHeight = 100;
+    
+    // Draw blue border box
+    doc.setDrawColor(37, 99, 235); // Blue border
+    doc.setFillColor(239, 246, 255); // Light blue background
+    doc.setLineWidth(0.5);
+    doc.rect(10, yPos, 190, disclaimerBoxHeight, 'FD');
+    
+    // Disclaimer heading
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(30, 58, 138); // Dark blue text
+    doc.text("LEGAL DISCLAIMER", 105, yPos + 6, { align: 'center' });
+    
+    // Subheading
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(30, 58, 138);
+    doc.text("Legal Disclaimer & Limitation of Use", 105, yPos + 11, { align: 'center' });
+    
+    // Disclaimer content
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(30, 58, 138);
+    
+    const disclaimerText = [
+      "This report is generated solely for investigative analysis and intelligence support. It is not a certified record, not primary evidence, and is not admissible in any court of law. The contents are indicative and intended only to assist authorized personnel in identifying leads that require further lawful verification.",
+      "",
+      "Information in this report is compiled in real time from publicly available sources and legally licensed third-party tools. No leaked, breached, hacked, or unlawfully obtained datasets are accessed or stored. Any flags or indicators are directional only and do not establish culpability.",
+      "",
+      "The platform acts only as a technological intermediary and makes no representations or warranties regarding accuracy, completeness, timeliness, or correctness of the information. All verification, interpretation, and enforcement decisions rest solely with the requesting agency.",
+      "",
+      "This report must be independently verified through official and legally admissible channels before being relied upon for any notice, action, or proceeding.",
+      "",
+      "Use of this report is restricted to authorised and lawful purposes and must comply with applicable Indian laws, including the Information Technology Act, 2000, the Bharatiya Nyaya Sanhita, Bharatiya Nagarik Suraksha Sanhita, Bharatiya Sakshya Adhiniyam, the Digital Personal Data Protection Act, 2023, and constitutional privacy safeguards.",
+      "",
+      "Unauthorised sharing, reproduction, or use outside official systems is prohibited. By accessing this report, the user acknowledges and accepts these limitations.",
+    ];
+    
+    let disclaimerY = yPos + 16;
+    disclaimerText.forEach((paragraph) => {
+      if (paragraph === "") {
+        disclaimerY += 2;
+      } else {
+        const lines = doc.splitTextToSize(paragraph, 180);
+        lines.forEach((line: string) => {
+          doc.text(line, 12, disclaimerY);
+          disclaimerY += 3;
+        });
+      }
+    });
+    
+    // Final emphasis
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(185, 28, 28); // Red text
+    doc.text("For investigative assistance only. Not legal evidence.", 105, yPos + disclaimerBoxHeight - 4, { align: 'center' });
 
     // --- Footer ---
     const pageCount = doc.getNumberOfPages();

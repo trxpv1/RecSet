@@ -153,7 +153,7 @@ const VERIFICATION_CATEGORIES = {
       { value: "bank-verification-mobile", label: "Bank Verification Mobile", credits: 11, comingSoon: false, description: "Verify bank account linkage with mobile number." },
       { value: "mobile-to-multiple-upi", label: "Mobile to Multiple UPI", credits: 10, comingSoon: false, description: "Discover UPI IDs linked to a mobile number." },
       { value: "fampay-upi-to-mobile", label: "FamPay UPI to Mobile", credits: 9, comingSoon: false, description: "Trace mobile numbers linked to FamPay UPI handles." },
-      { value: "gstin-by-company-name", label: "Company Name to GSTIN ⚠️ Restricted", credits: 15, comingSoon: false, description: "Search GST registrations by company name." },
+      { value: "gstin-by-company-name", label: "Company Name to GSTIN 🔒 Premium", credits: 15, comingSoon: false, description: "Search GST registrations by company name. (Requires account activation - Contact support)" },
       { value: "gstin-by-pan", label: "PAN to All GST", credits: 5, comingSoon: false, description: "List GST registrations associated with a PAN." },
       // { value: "phone-to-bank", label: "Phone to Bank", credits: 3, comingSoon: true },
       // { value: "bank-validation", label: "Bank Validation", credits: 2, comingSoon: true },
@@ -181,7 +181,7 @@ const VERIFICATION_CATEGORIES = {
     bgColor: "bg-emerald-600",
     items: [
       { value: "mobile-intelligence", label: "Mobile Intelligence", credits: 30, comingSoon: false, description: "Generate a consolidated intelligence profile for a mobile number." },
-      { value: "mobile-to-gas", label: "Mobile to GAS Connection", credits: 8, comingSoon: false, description: "Verify gas connection details linked to a mobile number." },
+      { value: "mobile-to-gas", label: "Mobile to GAS Connection", credits: 8, comingSoon: false, description: "Verify gas connection details by mobile number and gas provider (Indane, HP Gas, Bharat Gas)." },
       // { value: "mobile-to-address", label: "🔒 Mobile to Address", credits: 35, comingSoon: true },
       // NOTE: Mobile to Address is disabled due to backend API issue: 'User' object has no attribute 'company'
       // Backend team needs to add 'company' field to User model or fix the endpoint logic
@@ -224,6 +224,7 @@ export default function Dashboard() {
   const [activeCategory, setActiveCategory] = useState<string>("identity");
   const [selectedVerification, setSelectedVerification] = useState<any>(null);
   const [query, setQuery] = useState("");
+  const [gasProvider, setGasProvider] = useState("Indane");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<VerificationResult[]>([]);
   const [showQueryModal, setShowQueryModal] = useState(false);
@@ -527,6 +528,7 @@ export default function Dashboard() {
     setSelectedVerification(verification);
     setShowQueryModal(true);
     setQuery("");
+    setGasProvider("Indane");
   };
 
   const handleVerification = async (e: React.FormEvent) => {
@@ -632,7 +634,7 @@ export default function Dashboard() {
         response = await verifyRCOwnerHistory(query);
       } else if (selectedVerification.value === 'mobile-to-gas') {
         // ✅ REAL API CALL for Mobile to GAS Connection
-        response = await verifyMobileToGAS(query);
+        response = await verifyMobileToGAS(query.trim(), gasProvider);
       } else {
         // Fallback for other types (temporary)
         throw new Error('This verification type is not yet implemented');
@@ -721,6 +723,10 @@ export default function Dashboard() {
         errorMessage = 'Your session has expired for security reasons. You will be redirected to the login page.';
         errorType = 'warning';
         setTimeout(() => navigate('/login'), 3000);
+      } else if (error.message.includes('403') || error.message.includes('Forbidden') || error.message.includes('forbidden')) {
+        errorTitle = '🔐 Access Restricted - Premium Feature';
+        errorMessage = `This premium feature requires special account activation and permissions.\n\n🔒 Why am I seeing this?\n• Company Name to GSTIN is a premium API endpoint\n• Your account needs to be upgraded for access\n• Additional verification steps may be required\n\n✅ Alternative Options:\n• Use "PAN to All GST" instead (search by PAN number)\n• Use "GSTIN Advanced" if you know the GSTIN\n• Contact support to upgrade your account\n\n📧 Contact: support@recordsetu.com\n📞 Support: Available for account activation\n\n⚡ No credits were deducted for this request.`;
+        errorType = 'warning';
       } else if (error.message.includes('503') || error.message.includes('unavailable')) {
         errorTitle = '🚫 Service Unavailable';
         errorMessage = 'The verification service is temporarily unavailable. This is usually temporary.\n\nPlease try again in a few minutes.';
@@ -731,7 +737,13 @@ export default function Dashboard() {
         errorType = 'error';
       } else if (error.message.includes('required') || error.message.includes('invalid')) {
         errorTitle = '⚠️ Invalid Input';
-        errorMessage = `There was an issue with your input: ${error.message}\n\nPlease check your entry and try again.`;
+        
+        // Special handling for Mobile to GAS provider error
+        if (selectedVerification.value === 'mobile-to-gas' && (error.message.includes('provider') || error.message.includes('Mobile number and provider'))) {
+          errorMessage = `Mobile to GAS verification failed.\n\n📝 Please ensure:\n• Mobile number is entered correctly (10 digits)\n• Gas provider is selected from the dropdown\n\n🏢 Available Providers:\n• Indane Gas\n• HP Gas\n• Bharat Gas\n\nPlease try again.`;
+        } else {
+          errorMessage = `There was an issue with your input: ${error.message}\n\nPlease check your entry and try again.`;
+        }
         errorType = 'warning';
       } else if (error.message) {
         errorMessage = error.message;
@@ -1178,7 +1190,7 @@ export default function Dashboard() {
                   return (
                     <div
                       key={`${category}-${item.value}`}
-                      className={`${categoryData.bgColor} rounded-xl p-6 relative overflow-hidden group hover:shadow-2xl transition-all hover:scale-105 min-h-[200px] ${item.comingSoon ? 'opacity-75' : ''}`}
+                      className={`${categoryData.bgColor} rounded-xl p-6 relative overflow-hidden group hover:shadow-2xl transition-all hover:scale-105 h-[220px] flex flex-col ${item.comingSoon ? 'opacity-75' : ''}`}
                     >
                       {/* Health Status LED Indicator */}
                       {!item.comingSoon && serviceStatus !== null && (
@@ -1224,15 +1236,15 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      <div className={`relative z-10 ${searchQuery || item.comingSoon ? 'pt-6' : ''}`}>
-                        <h3 className="text-white font-heading font-bold text-lg mb-2">
+                      <div className={`relative z-10 flex-1 flex flex-col ${searchQuery || item.comingSoon ? 'pt-6' : ''}`}>
+                        <h3 className="text-white font-heading font-bold text-lg mb-2 pr-14">
                           {item.label}
                         </h3>
-                        <p className="text-white/90 text-sm mb-8 line-clamp-2">
+                        <p className="text-white/90 text-sm mb-4 line-clamp-2 flex-1">
                           {item.description || item.value.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
                         </p>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mt-auto">
                           <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
                             <Coins className="w-5 h-5 text-white" />
                             <span className="text-white font-semibold text-sm">
@@ -1265,7 +1277,7 @@ export default function Dashboard() {
             <div className="max-w-7xl mx-auto px-8 py-4">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <span>© 2026 CyberShastra. All rights reserved.</span>
+                  <span>© 2026 RecordSetu. All rights reserved.</span>
                 </div>
                 <div className="flex items-center gap-6">
                   <a href="/privacy" className="hover:text-foreground transition-colors">
@@ -1311,37 +1323,77 @@ export default function Dashboard() {
             </div>
 
             <form onSubmit={handleVerification} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="query" className="text-sm font-medium">
-                  Verification Details
-                </Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="query"
-                    type="text"
-                    placeholder="Enter verification details"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    disabled={isSearching}
-                    className="pl-10"
-                    autoFocus
-                  />
+              {selectedVerification.value === 'mobile-to-gas' ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="query" className="text-sm font-medium">
+                      Mobile Number
+                    </Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="query"
+                        type="tel"
+                        placeholder="Enter mobile number (e.g., 9876543210)"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        disabled={isSearching}
+                        className="pl-10"
+                        autoFocus
+                        maxLength={10}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gasProvider" className="text-sm font-medium">
+                      Gas Provider
+                    </Label>
+                    <select
+                      id="gasProvider"
+                      value={gasProvider}
+                      onChange={(e) => setGasProvider(e.target.value)}
+                      disabled={isSearching}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="Indane">Indane Gas</option>
+                      <option value="HP Gas">HP Gas</option>
+                      <option value="Bharat Gas">Bharat Gas</option>
+                    </select>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="query" className="text-sm font-medium">
+                    Verification Details
+                  </Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="query"
+                      type="text"
+                      placeholder="Enter verification details"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      disabled={isSearching}
+                      className="pl-10"
+                      autoFocus
+                    />
+                  </div>
                 </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
-                  <p className="text-xs text-blue-900 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" />
-                    This verification will cost <strong>{selectedVerification.credits} credits</strong>
+              )}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                <p className="text-xs text-blue-900 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  This verification will cost <strong>{selectedVerification.credits} credits</strong>
+                </p>
+              </div>
+              {selectedVerification.value === 'aadhar-family-tree' && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                  <p className="text-xs text-amber-900">
+                    Only family members linked to ration card can be viewed
                   </p>
                 </div>
-                {selectedVerification.value === 'aadhar-family-tree' && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
-                    <p className="text-xs text-amber-900">
-                      Only family members linked to ration card can be viewed
-                    </p>
-                  </div>
-                )}
-              </div>
+              )}
 
               <Button
                 type="submit"
