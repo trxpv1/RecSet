@@ -276,7 +276,7 @@ export const generatePDFReport = (verificationData: VerificationData): void => {
       yPos = 20;
     }
     
-    const disclaimerBoxHeight = 100;
+    const disclaimerBoxHeight = 75;
     
     // Draw blue border box
     doc.setDrawColor(37, 99, 235); // Blue border
@@ -285,19 +285,19 @@ export const generatePDFReport = (verificationData: VerificationData): void => {
     doc.rect(10, yPos, 190, disclaimerBoxHeight, 'FD');
     
     // Disclaimer heading
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 58, 138); // Dark blue text
-    doc.text("LEGAL DISCLAIMER", 105, yPos + 6, { align: 'center' });
+    doc.text("LEGAL DISCLAIMER", 105, yPos + 5, { align: 'center' });
     
     // Subheading
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 58, 138);
-    doc.text("Legal Disclaimer & Limitation of Use", 105, yPos + 11, { align: 'center' });
+    doc.text("Legal Disclaimer & Limitation of Use", 105, yPos + 10, { align: 'center' });
     
     // Disclaimer content
-    doc.setFontSize(7);
+    doc.setFontSize(6.5);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(30, 58, 138);
     
@@ -315,24 +315,24 @@ export const generatePDFReport = (verificationData: VerificationData): void => {
       "Unauthorised sharing, reproduction, or use outside official systems is prohibited. By accessing this report, the user acknowledges and accepts these limitations.",
     ];
     
-    let disclaimerY = yPos + 16;
+    let disclaimerY = yPos + 14;
     disclaimerText.forEach((paragraph) => {
       if (paragraph === "") {
-        disclaimerY += 2;
+        disclaimerY += 1.5;
       } else {
         const lines = doc.splitTextToSize(paragraph, 180);
         lines.forEach((line: string) => {
           doc.text(line, 12, disclaimerY);
-          disclaimerY += 3;
+          disclaimerY += 2.5;
         });
       }
     });
     
     // Final emphasis
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(185, 28, 28); // Red text
-    doc.text("For investigative assistance only. Not legal evidence.", 105, yPos + disclaimerBoxHeight - 4, { align: 'center' });
+    doc.text("For investigative assistance only. Not legal evidence.", 105, yPos + disclaimerBoxHeight - 3, { align: 'center' });
 
     // --- Footer ---
     const pageCount = doc.getNumberOfPages();

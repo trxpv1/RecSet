@@ -225,6 +225,7 @@ export default function Dashboard() {
   const [selectedVerification, setSelectedVerification] = useState<any>(null);
   const [query, setQuery] = useState("");
   const [gasProvider, setGasProvider] = useState("Indane");
+  const [dob, setDob] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<VerificationResult[]>([]);
   const [showQueryModal, setShowQueryModal] = useState(false);
@@ -565,7 +566,7 @@ export default function Dashboard() {
         response = await verifyAadhaarFamilyMembers(query);
       } else if (selectedVerification.value === 'driving-license') {
         // ✅ REAL API CALL for Driving License
-        response = await verifyDrivingLicense(query);
+        response = await verifyDrivingLicense(query, dob);
       } else if (selectedVerification.value === 'din-lookup') {
         // ✅ REAL API CALL for DIN Lookup
         response = await verifyCorporateDIN(query);
@@ -685,6 +686,9 @@ export default function Dashboard() {
       setIsSearching(false);
       setShowQueryModal(false);
       setShowResultModal(true);
+      setQuery("");
+      setDob("");
+      setGasProvider("Indane");
 
       console.log('✅ Verification completed successfully');
 
@@ -758,6 +762,9 @@ export default function Dashboard() {
       
       setIsSearching(false);
       setShowQueryModal(false);
+      setQuery("");
+      setDob("");
+      setGasProvider("Indane");
     }
   };
 
@@ -1307,7 +1314,12 @@ export default function Dashboard() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-2xl animate-in zoom-in duration-200">
             <button
-              onClick={() => setShowQueryModal(false)}
+              onClick={() => {
+                setShowQueryModal(false);
+                setQuery("");
+                setDob("");
+                setGasProvider("Indane");
+              }}
               className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="w-5 h-5" />
@@ -1324,41 +1336,71 @@ export default function Dashboard() {
 
             <form onSubmit={handleVerification} className="space-y-4">
               {selectedVerification.value === 'mobile-to-gas' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="query" className="text-sm font-medium">
+                    Mobile Number
+                  </Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="query"
+                      type="tel"
+                      placeholder="Enter mobile number (e.g., 9876543210)"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      disabled={isSearching}
+                      className="pl-10"
+                      autoFocus
+                      maxLength={10}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Verifying with Indane Gas provider
+                  </p>
+                </div>
+              ) : selectedVerification.value === 'driving-license' ? (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="query" className="text-sm font-medium">
-                      Mobile Number
+                      License Number
                     </Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="query"
-                        type="tel"
-                        placeholder="Enter mobile number (e.g., 9876543210)"
+                        type="text"
+                        placeholder="e.g., DL-0123456789012"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) => setQuery(e.target.value.toUpperCase())}
                         disabled={isSearching}
                         className="pl-10"
                         autoFocus
-                        maxLength={10}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="gasProvider" className="text-sm font-medium">
-                      Gas Provider
+                    <Label htmlFor="dob" className="text-sm font-medium">
+                      Date of Birth
                     </Label>
-                    <select
-                      id="gasProvider"
-                      value={gasProvider}
-                      onChange={(e) => setGasProvider(e.target.value)}
-                      disabled={isSearching}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="Indane">Indane Gas</option>
-                      <option value="HP Gas">HP Gas</option>
-                      <option value="Bharat Gas">Bharat Gas</option>
-                    </select>
+                    <div className="relative">
+                      <Input
+                        id="dob"
+                        type="text"
+                        placeholder="DDMMYYYY (e.g., 15011990)"
+                        value={dob}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          if (value.length <= 8) {
+                            setDob(value);
+                          }
+                        }}
+                        disabled={isSearching}
+                        maxLength={8}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Enter date in DDMMYYYY format (e.g., 15011990 for 15 Jan 1990)
+                    </p>
                   </div>
                 </>
               ) : (
@@ -1397,7 +1439,7 @@ export default function Dashboard() {
 
               <Button
                 type="submit"
-                disabled={isSearching || !query}
+                disabled={isSearching || !query || (selectedVerification.value === 'driving-license' && (!dob || dob.length !== 8))}
                 className="w-full gap-2"
                 size="lg"
               >

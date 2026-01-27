@@ -651,16 +651,18 @@ export const verifyVoterID = async (
  * Returns comprehensive driving license information
  */
 export const verifyDrivingLicense = async (
-  licenseNumber: string
+  licenseNumber: string,
+  dob: string
 ): Promise<GenericVerificationResponse> => {
   console.log('🔍 Driving License Verification:', {
     licenseNumber: licenseNumber.substring(0, 6) + '****',
+    dob: dob.substring(0, 4) + '****',
     timestamp: new Date().toISOString(),
   });
 
   return apiRequest<GenericVerificationResponse>('/api/driving-license/driving-license', {
     method: 'POST',
-    body: JSON.stringify({ id_number: licenseNumber }),
+    body: JSON.stringify({ id_number: licenseNumber, dob }),
   });
 };
 
