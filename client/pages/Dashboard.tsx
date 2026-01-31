@@ -96,6 +96,42 @@ const formatKeyName = (key: string): string => {
     .trim();
 };
 
+/**
+ * Get input placeholder and hint for each verification type
+ * Provides example inputs for users to understand the format needed
+ */
+const getInputHint = (verificationValue: string): { placeholder: string; hint?: string } => {
+  const hintMap: Record<string, { placeholder: string; hint?: string }> = {
+    'aadhar-family-tree': { placeholder: 'e.g., 1234-5678-9012', hint: 'Enter 12-digit Aadhaar number' },
+    'pan-info': { placeholder: 'e.g., ABCDE1234F', hint: 'Enter 10-character PAN' },
+    'voter-id-text': { placeholder: 'e.g., ABCDE1234567', hint: 'Enter voter ID number' },
+    'rc-full': { placeholder: 'e.g., DL01AB1234', hint: 'Enter vehicle registration number' },
+    'chassis-to-rc': { placeholder: 'e.g., MALLHA123456789', hint: 'Enter 17-character chassis number' },
+    'rc-owner-history': { placeholder: 'e.g., DL01AB1234', hint: 'Enter vehicle registration number' },
+    'rc-to-mobile': { placeholder: 'e.g., DL01AB1234', hint: 'Enter vehicle registration number' },
+    'mobile-to-rc': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
+    'fastag-to-rc': { placeholder: 'e.g., TAG1234567890', hint: 'Enter FASTag number' },
+    'rc-to-fastag': { placeholder: 'e.g., DL01AB1234', hint: 'Enter vehicle registration number' },
+    'driving-license': { placeholder: 'e.g., DL-0123456789012', hint: 'Enter license number' },
+    'bank-verification-mobile': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
+    'mobile-to-multiple-upi': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
+    'fampay-upi-to-mobile': { placeholder: 'e.g., user@fampay', hint: 'Enter FamPay UPI ID' },
+    'gstin-by-company-name': { placeholder: 'e.g., ABC Enterprises', hint: 'Enter company name' },
+    'gstin-by-pan': { placeholder: 'e.g., ABCDE1234F', hint: 'Enter 10-character PAN' },
+    'din-lookup': { placeholder: 'e.g., 1234567890', hint: 'Enter 10-digit DIN' },
+    'director-phone': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
+    'gstin-advanced': { placeholder: 'e.g., 27AABCR5055K1Z5', hint: 'Enter 15-character GSTIN' },
+    'cin-to-pan': { placeholder: 'e.g., U72900KA2005PTC036263', hint: 'Enter CIN (Company Identity Number)' },
+    'pan-to-uan': { placeholder: 'e.g., ABCDE1234F', hint: 'Enter 10-character PAN' },
+    'mobile-to-uan': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
+    'uan-employment-history': { placeholder: 'e.g., 100123456789', hint: 'Enter 12-digit UAN' },
+    'mobile-intelligence': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
+    'mobile-to-gas': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
+  };
+  
+  return hintMap[verificationValue] || { placeholder: 'Enter verification details', hint: 'Provide the required information' };
+};
+
 interface User {
   email: string;
   name: string;
@@ -793,6 +829,9 @@ export default function Dashboard() {
         } : undefined,
       });
       
+      // Close the result modal after successful PDF export
+      setShowResultModal(false);
+      
       setErrorDialog({
         show: true,
         title: '✅ Export Successful',
@@ -1311,8 +1350,19 @@ export default function Dashboard() {
 
       {/* QUERY MODAL */}
       {showQueryModal && selectedVerification && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-2xl animate-in zoom-in duration-200">
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
+          onClick={() => {
+            setShowQueryModal(false);
+            setQuery("");
+            setDob("");
+            setGasProvider("Indane");
+          }}
+        >
+          <div 
+            className="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-2xl animate-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => {
                 setShowQueryModal(false);
@@ -1345,7 +1395,7 @@ export default function Dashboard() {
                     <Input
                       id="query"
                       type="tel"
-                      placeholder="Enter mobile number (e.g., 9876543210)"
+                      placeholder={getInputHint('mobile-to-gas').placeholder}
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       disabled={isSearching}
@@ -1354,6 +1404,11 @@ export default function Dashboard() {
                       maxLength={10}
                     />
                   </div>
+                  {getInputHint('mobile-to-gas').hint && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {getInputHint('mobile-to-gas').hint}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-2">
                     Verifying with Indane Gas provider
                   </p>
@@ -1369,7 +1424,7 @@ export default function Dashboard() {
                       <Input
                         id="query"
                         type="text"
-                        placeholder="e.g., DL-0123456789012"
+                        placeholder={getInputHint('driving-license').placeholder}
                         value={query}
                         onChange={(e) => setQuery(e.target.value.toUpperCase())}
                         disabled={isSearching}
@@ -1377,6 +1432,11 @@ export default function Dashboard() {
                         autoFocus
                       />
                     </div>
+                    {getInputHint('driving-license').hint && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {getInputHint('driving-license').hint}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="dob" className="text-sm font-medium">
@@ -1413,7 +1473,7 @@ export default function Dashboard() {
                     <Input
                       id="query"
                       type="text"
-                      placeholder="Enter verification details"
+                      placeholder={getInputHint(selectedVerification.value).placeholder}
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       disabled={isSearching}
@@ -1421,6 +1481,11 @@ export default function Dashboard() {
                       autoFocus
                     />
                   </div>
+                  {getInputHint(selectedVerification.value).hint && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {getInputHint(selectedVerification.value).hint}
+                    </p>
+                  )}
                 </div>
               )}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
@@ -1461,8 +1526,14 @@ export default function Dashboard() {
 
       {/* RESULT MODAL */}
       {showResultModal && currentResult && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto p-6 relative shadow-2xl animate-in zoom-in duration-200">
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
+          onClick={() => setShowResultModal(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto p-6 relative shadow-2xl animate-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setShowResultModal(false)}
               className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10"
