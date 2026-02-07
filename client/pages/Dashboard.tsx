@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import EulaModal from "@/components/EulaModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag, verifyMobileToMultipleUPI, verifyChassisToRCDetails, verifyVoterIDText, verifyCINToPAN, verifyMobileToUAN, verifyUANToEmploymentHistory, verifyPANToUAN, verifyRCOwnerHistory, verifyMobileToGAS, getUserLogs, getHealthStatus, type UserLog, type LogsResponse, type HealthCheckResponse } from "@/lib/apiClient";
+import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag, verifyMobileToMultipleUPI, verifyChassisToRCDetails, verifyVoterIDText, verifyCINToPAN, verifyMobileToUAN, verifyUANToEmploymentHistory, verifyPANToUAN, verifyRCOwnerHistory, verifyMobileToGAS, verifyMobileToPAN, verifyUPIToBankDetails, verifyMobileToAddressEnhanced, getUserLogs, getHealthStatus, type UserLog, type LogsResponse, type HealthCheckResponse } from "@/lib/apiClient";
 import { generatePDFReport } from "@/lib/pdfGenerator";
 import {
   Search,
@@ -127,6 +128,9 @@ const getInputHint = (verificationValue: string): { placeholder: string; hint?: 
     'uan-employment-history': { placeholder: 'e.g., 100123456789', hint: 'Enter 12-digit UAN' },
     'mobile-intelligence': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
     'mobile-to-gas': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
+    'mobile-to-pan': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
+    'upi-to-bank-details': { placeholder: 'e.g., kumar32@axisb', hint: 'Enter UPI ID' },
+    'mobile-to-address-enhanced': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
   };
   
   return hintMap[verificationValue] || { placeholder: 'Enter verification details', hint: 'Provide the required information' };
@@ -159,6 +163,7 @@ const VERIFICATION_CATEGORIES = {
       { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 50, comingSoon: false, description: "Map related individuals linked through Aadhaar references." },
       { value: "pan-info", label: "PAN Details", credits: 7, comingSoon: false, description: "Retrieve basic PAN profile and identity metadata." },
       { value: "voter-id-text", label: "Voter ID Text", credits: 10, comingSoon: false, description: "Access voter registration and electoral roll information." },
+      { value: "mobile-to-pan", label: "Mobile Number to PAN Card", credits: 8, comingSoon: false, description: "Retrieve PAN card details linked to a mobile number." },
       // { value: "voter-id", label: "Voter ID", credits: 2, comingSoon: true },
       // { value: "aadhar-to-pan", label: "Aadhar to PAN", credits: 2, comingSoon: true },
       // { value: "pan-validation", label: "PAN Validation", credits: 1, comingSoon: true },
@@ -189,6 +194,7 @@ const VERIFICATION_CATEGORIES = {
       { value: "bank-verification-mobile", label: "Bank Verification Mobile", credits: 11, comingSoon: false, description: "Verify bank account linkage with mobile number." },
       { value: "mobile-to-multiple-upi", label: "Mobile to Multiple UPI", credits: 10, comingSoon: false, description: "Discover UPI IDs linked to a mobile number." },
       { value: "fampay-upi-to-mobile", label: "FamPay UPI to Mobile", credits: 9, comingSoon: false, description: "Trace mobile numbers linked to FamPay UPI handles." },
+      { value: "upi-to-bank-details", label: "UPI to Bank Details", credits: 12, comingSoon: false, description: "Retrieve complete bank account details from UPI ID." },
       { value: "gstin-by-company-name", label: "Company Name to GSTIN 🔒 Premium", credits: 15, comingSoon: false, description: "Search GST registrations by company name. (Requires account activation - Contact support)" },
       { value: "gstin-by-pan", label: "PAN to All GST", credits: 5, comingSoon: false, description: "List GST registrations associated with a PAN." },
       // { value: "phone-to-bank", label: "Phone to Bank", credits: 3, comingSoon: true },
@@ -205,8 +211,8 @@ const VERIFICATION_CATEGORIES = {
     icon: Briefcase,
     bgColor: "bg-secondary/80",
     items: [
-      { value: "pan-to-uan", label: "PAN to UAN", credits: 8, comingSoon: false, description: "Identify UAN linked to a PAN record." },
-      { value: "mobile-to-uan", label: "Mobile to UAN", credits: 8, comingSoon: false, description: "Trace employment identifiers using mobile numbers." },
+      { value: "pan-to-uan", label: "PAN to UAN", credits: 8, comingSoon: true, description: "Identify UAN linked to a PAN record." },
+      { value: "mobile-to-uan", label: "Mobile to UAN", credits: 8, comingSoon: true, description: "Trace employment identifiers using mobile numbers." },
       { value: "uan-employment-history", label: "UAN Employment History V2", credits: 25, comingSoon: false, description: "Retrieve professional and employment history records." },
       // { value: "pan-employment", label: "PAN Employment", credits: 2, comingSoon: true },
     ],
@@ -217,7 +223,8 @@ const VERIFICATION_CATEGORIES = {
     bgColor: "bg-emerald-600",
     items: [
       { value: "mobile-intelligence", label: "Mobile Intelligence", credits: 30, comingSoon: false, description: "Generate a consolidated intelligence profile for a mobile number." },
-      { value: "mobile-to-gas", label: "Mobile to GAS Connection", credits: 8, comingSoon: false, description: "Verify gas connection details by mobile number and gas provider (Indane, HP Gas, Bharat Gas)." },
+      { value: "mobile-to-gas", label: "Mobile to GAS Connection", credits: 8, comingSoon: true, description: "Verify gas connection details by mobile number and gas provider (Indane, HP Gas, Bharat Gas)." },
+      { value: "mobile-to-address-enhanced", label: "Mobile to Address", credits: 35, comingSoon: false, description: "Retrieve delivery addresses linked to a mobile number." },
       // { value: "mobile-to-address", label: "🔒 Mobile to Address", credits: 35, comingSoon: true },
       // NOTE: Mobile to Address is disabled due to backend API issue: 'User' object has no attribute 'company'
       // Backend team needs to add 'company' field to User model or fix the endpoint logic
@@ -255,6 +262,7 @@ const VERIFICATION_CATEGORIES = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [credits, setCredits] = useState(250);
   const [activeCategory, setActiveCategory] = useState<string>("identity");
@@ -546,7 +554,7 @@ export default function Dashboard() {
     if (verification.comingSoon) {
       setErrorDialog({
         show: true,
-        title: '🚧 Feature Coming Soon',
+        title: 'Feature Coming Soon',
         message: 'This verification service is currently under development and will be available soon. Stay tuned!',
         type: 'info'
       });
@@ -662,7 +670,21 @@ export default function Dashboard() {
         response = await verifyMobileToUAN(query);
       } else if (selectedVerification.value === 'uan-employment-history') {
         // ✅ REAL API CALL for UAN to Employment History
-        response = await verifyUANToEmploymentHistory(query);
+        console.log('🚀 Calling UAN Employment History API with UAN:', query);
+        try {
+          response = await verifyUANToEmploymentHistory(query);
+          console.log('✅ UAN Employment History API call successful:', {
+            success: response.success,
+            dataKeys: Object.keys(response.data || {}),
+            hasEmploymentHistory: !!response.data?.employment_history,
+          });
+        } catch (uanError: any) {
+          console.error('❌ UAN Employment History API call failed:', {
+            error: uanError.message,
+            stack: uanError.stack,
+          });
+          throw uanError;
+        }
       } else if (selectedVerification.value === 'pan-to-uan') {
         // ✅ REAL API CALL for PAN to UAN
         response = await verifyPANToUAN(query);
@@ -672,6 +694,15 @@ export default function Dashboard() {
       } else if (selectedVerification.value === 'mobile-to-gas') {
         // ✅ REAL API CALL for Mobile to GAS Connection
         response = await verifyMobileToGAS(query.trim(), gasProvider);
+      } else if (selectedVerification.value === 'mobile-to-pan') {
+        // ✅ REAL API CALL for Mobile to PAN
+        response = await verifyMobileToPAN(query);
+      } else if (selectedVerification.value === 'upi-to-bank-details') {
+        // ✅ REAL API CALL for UPI to Bank Details
+        response = await verifyUPIToBankDetails(query);
+      } else if (selectedVerification.value === 'mobile-to-address-enhanced') {
+        // ✅ REAL API CALL for Mobile to Address Enhanced
+        response = await verifyMobileToAddressEnhanced(query);
       } else {
         // Fallback for other types (temporary)
         throw new Error('This verification type is not yet implemented');

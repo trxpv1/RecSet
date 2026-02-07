@@ -938,13 +938,25 @@ export const verifyUANToEmploymentHistory = async (
 ): Promise<GenericVerificationResponse> => {
   console.log('🔍 UAN to Employment History Verification:', {
     uan: uan.substring(0, 4) + '****',
+    endpoint: '/api/income/uan-to-employment-history',
+    requestBody: { id_number: uan },
     timestamp: new Date().toISOString(),
   });
 
-  return apiRequest<GenericVerificationResponse>('/api/income/uan-to-employment-history', {
+  const response = await apiRequest<GenericVerificationResponse>('/api/income/uan-to-employment-history', {
     method: 'POST',
     body: JSON.stringify({ id_number: uan }),
   });
+
+  console.log('✅ UAN Employment History Response:', {
+    success: response.success,
+    status_code: response.status_code,
+    hasData: !!response.data,
+    hasEmploymentHistory: !!response.data?.employment_history,
+    creditDetails: response.credit_details,
+  });
+
+  return response;
 };
 
 /**
@@ -1046,4 +1058,89 @@ export const getHealthStatus = async (): Promise<HealthCheckResponse> => {
     console.error('Health check failed:', error);
     return { status: 'down', message: 'Unable to check system health', apis: [] };
   }
+};
+
+/**
+ * Mobile to PAN
+ * POST /bank-verification/mobile-to-pan
+ * Returns PAN details linked to a mobile number
+ */
+export const verifyMobileToPAN = async (
+  mobileNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Mobile to PAN Verification:', {
+    mobileNumber: mobileNumber.substring(0, 3) + '****',
+    endpoint: '/api/bank-verification/mobile-to-pan',
+    timestamp: new Date().toISOString(),
+  });
+
+  const response = await apiRequest<GenericVerificationResponse>('/api/bank-verification/mobile-to-pan', {
+    method: 'POST',
+    body: JSON.stringify({ mobile_no: mobileNumber }),
+  });
+
+  console.log('✅ Mobile to PAN Response:', {
+    success: response.success,
+    status_code: response.status_code,
+    hasData: !!response.data,
+  });
+
+  return response;
+};
+
+/**
+ * UPI to Bank Details
+ * POST /bank-verification/upi-to-bank-details
+ * Returns bank account details linked to a UPI ID
+ */
+export const verifyUPIToBankDetails = async (
+  upiId: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 UPI to Bank Details Verification:', {
+    upiId: upiId.substring(0, 4) + '****',
+    endpoint: '/api/bank-verification/upi-to-bank-details',
+    timestamp: new Date().toISOString(),
+  });
+
+  const response = await apiRequest<GenericVerificationResponse>('/api/bank-verification/upi-to-bank-details', {
+    method: 'POST',
+    body: JSON.stringify({ upi_id: upiId }),
+  });
+
+  console.log('✅ UPI to Bank Details Response:', {
+    success: response.success,
+    status_code: response.status_code,
+    hasData: !!response.data,
+  });
+
+  return response;
+};
+
+/**
+ * Mobile to Address (Enhanced)
+ * POST /address/mobile-to-address
+ * Returns address details linked to a mobile number
+ * Note: This API has a different response format that needs transformation
+ */
+export const verifyMobileToAddressEnhanced = async (
+  mobileNumber: string
+): Promise<GenericVerificationResponse> => {
+  console.log('🔍 Mobile to Address Enhanced Verification:', {
+    mobileNumber: mobileNumber.substring(0, 3) + '****',
+    endpoint: '/api/address/mobile-to-address',
+    timestamp: new Date().toISOString(),
+  });
+
+  const response = await apiRequest<GenericVerificationResponse>('/api/address/mobile-to-address', {
+    method: 'POST',
+    body: JSON.stringify({ mobile: mobileNumber }),
+  });
+
+  console.log('✅ Mobile to Address Enhanced Response:', {
+    success: response.success,
+    status_code: response.status_code,
+    hasData: !!response.data,
+  });
+
+  return response;
 };
