@@ -113,7 +113,7 @@ const getInputHint = (verificationValue: string): { placeholder: string; hint?: 
     'mobile-to-rc': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
     'fastag-to-rc': { placeholder: 'e.g., TAG1234567890', hint: 'Enter FASTag number' },
     'rc-to-fastag': { placeholder: 'e.g., DL01AB1234', hint: 'Enter vehicle registration number' },
-    'driving-license': { placeholder: 'e.g., DL-0123456789012', hint: 'Enter license number' },
+    'driving-license': { placeholder: 'e.g., DL-0123456789012', hint: 'Enter license number and DOB (YYYY-MM-DD format)' },
     'bank-verification-mobile': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
     'mobile-to-multiple-upi': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
     'fampay-upi-to-mobile': { placeholder: 'e.g., user@fampay', hint: 'Enter FamPay UPI ID' },
@@ -1477,20 +1477,16 @@ export default function Dashboard() {
                       <Input
                         id="dob"
                         type="text"
-                        placeholder="DDMMYYYY (e.g., 15011990)"
+                        placeholder="YYYY-MM-DD (e.g., 1990-01-15)"
                         value={dob}
                         onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          if (value.length <= 8) {
-                            setDob(value);
-                          }
+                          setDob(e.target.value);
                         }}
                         disabled={isSearching}
-                        maxLength={8}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Enter date in DDMMYYYY format (e.g., 15011990 for 15 Jan 1990)
+                      Enter date in YYYY-MM-DD format (e.g., 1990-01-15 for 15 Jan 1990)
                     </p>
                   </div>
                 </>

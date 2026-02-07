@@ -1076,7 +1076,7 @@ export const verifyMobileToPAN = async (
 
   const response = await apiRequest<GenericVerificationResponse>('/api/bank-verification/mobile-to-pan', {
     method: 'POST',
-    body: JSON.stringify({ mobile_no: mobileNumber }),
+    body: JSON.stringify({ mobile_number: mobileNumber }),
   });
 
   console.log('✅ Mobile to PAN Response:', {
