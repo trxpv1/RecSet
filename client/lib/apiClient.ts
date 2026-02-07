@@ -55,7 +55,7 @@ async function apiRequest<T>(
   try {
     // Create an AbortController for timeout handling
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout (increased for slower verification APIs)
 
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
