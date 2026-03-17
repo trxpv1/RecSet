@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { verifyPayment, getAuthToken, createOrder, getUserTransactions, type Transaction as APITransaction, type TransactionsResponse } from "@/lib/apiClient";
+import { verifyPayment, getAuthToken, createOrder, getUserTransactions, type Transaction as APITransaction, type TransactionsResponse, type ApiClientError } from "@/lib/apiClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   Coins,
@@ -52,7 +52,22 @@ export default function Wallet() {
   const [transactionsPage, setTransactionsPage] = useState(1);
   const [transactionsTotalPages, setTransactionsTotalPages] = useState(1);
 
+  const maskWalletValue = (value: string): string => {
+    if (!value) return '';
+    if (value.length <= 4) return '****';
+    return `${value.slice(0, 3)}****${value.slice(-2)}`;
+  };
+
   const fetchTransactions = async (forceRefresh = false) => {
+    const fetchRunId = `wallet_txn_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    console.groupCollapsed(`📜 [WALLET][${fetchRunId}] Fetch transactions`);
+    console.log('📌 Fetch context:', {
+      forceRefresh,
+      page: transactionsPage,
+      limit: 20,
+      timestamp: new Date().toISOString(),
+    });
+
     // Check cache first (unless force refresh)
     if (!forceRefresh) {
       const cachedData = sessionStorage.getItem('wallet_transactions');
@@ -62,8 +77,10 @@ export default function Wallet() {
           const cacheAge = Date.now() - parsed.timestamp;
           // Use cache if less than 5 minutes old
           if (cacheAge < 5 * 60 * 1000) {
+            console.log('✅ Using cached transactions data', { cacheAgeMs: cacheAge });
             setTransactions(parsed.data);
             setTransactionsTotalPages(parsed.totalPages);
+            console.groupEnd();
             return;
           }
         } catch (e) {
@@ -96,12 +113,26 @@ export default function Wallet() {
         totalPages,
         timestamp: Date.now()
       }));
+
+      console.log('✅ Transactions fetched successfully:', {
+        totalFromApi: response.total,
+        currentPageItems: mappedTransactions.length,
+        totalPages,
+      });
     } catch (error: any) {
+      const apiError = error as ApiClientError;
       console.error('Failed to fetch transactions:', error);
+      console.error('🧭 Wallet transaction fetch diagnosis:', {
+        requestId: apiError?.requestId,
+        status: apiError?.status,
+        endpoint: apiError?.endpoint,
+        backendDiagnosis: apiError?.backendDiagnosis,
+      });
       // Don't show dummy data - keep transactions empty if API fails
       setTransactions([]);
     } finally {
       setTransactionsLoading(false);
+      console.groupEnd();
     }
   };
 
@@ -154,6 +185,16 @@ export default function Wallet() {
   };
 
   const handleQuickRecharge = async (credits: number, price: string) => {
+    const rechargeRunId = `wallet_recharge_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    console.groupCollapsed(`💳 [WALLET][${rechargeRunId}] Recharge initiated`);
+    console.log('📌 Recharge context:', {
+      rechargeRunId,
+      credits,
+      price,
+      userEmailMasked: authUser?.email ? maskWalletValue(authUser.email) : 'N/A',
+      timestamp: new Date().toISOString(),
+    });
+
     try {
       setIsProcessing(true);
 
@@ -161,17 +202,23 @@ export default function Wallet() {
       const authToken = getAuthToken();
       
       if (!authToken) {
+        console.warn('⚠️ Recharge blocked: no auth token present');
         toast({
           title: "Authentication Required",
           description: "Please login to make a payment",
           variant: "destructive",
         });
         setIsProcessing(false);
+        console.groupEnd();
         return;
       }
 
       const idempotencyKey = generateUUID();
-      console.log('🔑 Idempotency Key:', idempotencyKey);
+      console.log('🔑 Idempotency Key generated:', {
+        rechargeRunId,
+        idempotencyKey,
+        amount,
+      });
       
       let orderData;
       try {
@@ -186,7 +233,14 @@ export default function Wallet() {
           throw new Error('Invalid order data received from server');
         }
       } catch (orderError: any) {
+        const apiError = orderError as ApiClientError;
         console.error('❌ Order creation failed:', orderError);
+        console.error('🧭 Create-order diagnosis:', {
+          requestId: apiError?.requestId,
+          status: apiError?.status,
+          endpoint: apiError?.endpoint,
+          backendDiagnosis: apiError?.backendDiagnosis,
+        });
         
         toast({
           title: "Payment System Error",
@@ -194,6 +248,7 @@ export default function Wallet() {
           variant: "destructive",
         });
         setIsProcessing(false);
+        console.groupEnd();
         return;
       }
 
@@ -231,8 +286,23 @@ export default function Wallet() {
               title: "Payment Successful!",
               description: `${verifyData.credits_added} credits added to your wallet`,
             });
+
+            console.log('✅ Recharge completed and wallet updated', {
+              rechargeRunId,
+              paymentId: response?.razorpay_payment_id,
+              orderId: response?.razorpay_order_id,
+              creditsAdded: verifyData.credits_added,
+              newBalance: verifyData.new_balance,
+            });
           } catch (error: any) {
+            const apiError = error as ApiClientError;
             console.error('❌ Payment verification failed:', error);
+            console.error('🧭 Verify-payment diagnosis:', {
+              requestId: apiError?.requestId,
+              status: apiError?.status,
+              endpoint: apiError?.endpoint,
+              backendDiagnosis: apiError?.backendDiagnosis,
+            });
             
             toast({
               title: "Payment Verification Failed",
@@ -260,6 +330,13 @@ export default function Wallet() {
       
       razorpay.on('payment.failed', (response: any) => {
         console.error('❌ Razorpay Payment Failed:', response.error);
+        console.error('🧭 Payment failed details:', {
+          rechargeRunId,
+          code: response?.error?.code,
+          reason: response?.error?.reason,
+          step: response?.error?.step,
+          source: response?.error?.source,
+        });
         
         toast({
           title: "Payment Failed",
@@ -271,7 +348,14 @@ export default function Wallet() {
 
       razorpay.open();
     } catch (error: any) {
+      const apiError = error as ApiClientError;
       console.error('Payment error:', error);
+      console.error('🧭 Recharge flow diagnosis:', {
+        requestId: apiError?.requestId,
+        status: apiError?.status,
+        endpoint: apiError?.endpoint,
+        backendDiagnosis: apiError?.backendDiagnosis,
+      });
       
       toast({
         title: "Error",
@@ -279,6 +363,8 @@ export default function Wallet() {
         variant: "destructive",
       });
       setIsProcessing(false);
+    } finally {
+      console.groupEnd();
     }
   };
 

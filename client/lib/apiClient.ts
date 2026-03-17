@@ -6,6 +6,395 @@
 // Use environment variable for API base URL (supports dev/staging/prod)
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://osint-ninja.vercel.app';
 
+type JsonRecord = Record<string, any>;
+
+interface EndpointDiagnosticProfile {
+  serviceLabel: string;
+  cardKey?: string;
+  expectedBodyFields?: string[];
+  commonBackendRisks: string[];
+}
+
+interface BackendDiagnosis {
+  probableCauses: string[];
+  immediateActions: string[];
+  likelyOwner: 'frontend' | 'backend' | 'network' | 'mixed';
+}
+
+export interface ApiClientError extends Error {
+  requestId?: string;
+  endpoint?: string;
+  method?: string;
+  status?: number;
+  backendDiagnosis?: BackendDiagnosis;
+}
+
+const ENDPOINT_DIAGNOSTICS: Record<string, EndpointDiagnosticProfile> = {
+  '/api/pan/pan-comprehensive': {
+    serviceLabel: 'PAN Details',
+    cardKey: 'pan-info',
+    expectedBodyFields: ['id_number'],
+    commonBackendRisks: ['PAN provider timeout', 'PAN source returned no records', 'invalid provider credentials'],
+  },
+  '/api/aadhaar/family-members': {
+    serviceLabel: 'Aadhaar Family Tree',
+    cardKey: 'aadhar-family-tree',
+    expectedBodyFields: ['aadhaar'],
+    commonBackendRisks: ['upstream provider latency', 'Aadhaar lookup throttling', 'provider-side unavailable records'],
+  },
+  '/api/driving-license/driving-license': {
+    serviceLabel: 'Driving License',
+    cardKey: 'driving-license',
+    expectedBodyFields: ['id_number', 'dob'],
+    commonBackendRisks: ['DOB format mismatch at backend validator', 'license data source unavailable'],
+  },
+  '/api/corporate/din': {
+    serviceLabel: 'DIN Lookup',
+    cardKey: 'din-lookup',
+    expectedBodyFields: ['id_number'],
+    commonBackendRisks: ['DIN service rate-limited', 'corporate dataset stale/unavailable'],
+  },
+  '/api/corporate/director-phone': {
+    serviceLabel: 'Director Phone',
+    cardKey: 'director-phone',
+    expectedBodyFields: ['id_number'],
+    commonBackendRisks: ['director contact source unavailable', 'restricted dataset access'],
+  },
+  '/api/corporate/gstin-advanced': {
+    serviceLabel: 'GSTIN Advanced',
+    cardKey: 'gstin-advanced',
+    expectedBodyFields: ['id_number'],
+    commonBackendRisks: ['GST provider timeout', 'insufficient org-level entitlement'],
+  },
+  '/api/corporate/cin-to-pan': {
+    serviceLabel: 'CIN to PAN',
+    cardKey: 'cin-to-pan',
+    expectedBodyFields: ['cin_number'],
+    commonBackendRisks: ['corporate source mismatch', 'CIN not mapped in provider'],
+  },
+  '/api/gstin/search-by-company-name': {
+    serviceLabel: 'Company Name to GSTIN',
+    cardKey: 'gstin-by-company-name',
+    expectedBodyFields: ['company_name'],
+    commonBackendRisks: ['premium endpoint not activated for company', 'search index unavailable'],
+  },
+  '/api/gstin/search-by-pan': {
+    serviceLabel: 'PAN to All GST',
+    cardKey: 'gstin-by-pan',
+    expectedBodyFields: ['pan'],
+    commonBackendRisks: ['PAN-to-GST mapping source unavailable'],
+  },
+  '/api/bank-verification/bank-verification-mobile': {
+    serviceLabel: 'Bank Verification Mobile',
+    cardKey: 'bank-verification-mobile',
+    expectedBodyFields: ['mobile_number'],
+    commonBackendRisks: ['bank verification provider degraded', 'mobile not linked in provider dataset'],
+  },
+  '/api/bank-verification/mobile-to-multiple-upi': {
+    serviceLabel: 'Mobile to Multiple UPI',
+    cardKey: 'mobile-to-multiple-upi',
+    expectedBodyFields: ['mobile_number'],
+    commonBackendRisks: ['UPI provider throttling', 'empty provider mapping for mobile'],
+  },
+  '/api/bank-verification/mobile-to-pan': {
+    serviceLabel: 'Mobile Number to PAN Card',
+    cardKey: 'mobile-to-pan',
+    expectedBodyFields: ['mobile_number'],
+    commonBackendRisks: ['mobile-to-pan source unavailable', 'no linked identity record'],
+  },
+  '/api/bank-verification/upi-to-bank-details': {
+    serviceLabel: 'UPI to Bank Details',
+    cardKey: 'upi-to-bank-details',
+    expectedBodyFields: ['upi_id'],
+    commonBackendRisks: ['UPI provider timeout', 'bank details redaction policy blocking response'],
+  },
+  '/api/rc/rc-full': {
+    serviceLabel: 'RC Full Details',
+    cardKey: 'rc-full',
+    expectedBodyFields: ['id_number'],
+    commonBackendRisks: ['vehicle registry source timeout', 'invalid RC format rejected upstream'],
+  },
+  '/api/rc/rc-owner-history': {
+    serviceLabel: 'RC Owner History',
+    cardKey: 'rc-owner-history',
+    expectedBodyFields: ['id_number'],
+    commonBackendRisks: ['ownership-history source unavailable', 'historical data provider delay'],
+  },
+  '/api/rc/rc-to-mobile-number': {
+    serviceLabel: 'RC to Mobile',
+    cardKey: 'rc-to-mobile',
+    expectedBodyFields: ['rc_number'],
+    commonBackendRisks: ['PII redaction policy from provider', 'mobile mapping not present'],
+  },
+  '/api/rc/mobile-number-to-rc': {
+    serviceLabel: 'Mobile to RC',
+    cardKey: 'mobile-to-rc',
+    expectedBodyFields: ['mobile_number'],
+    commonBackendRisks: ['reverse mapping index unavailable', 'mobile not linked in provider'],
+  },
+  '/api/rc/chassis-to-rc-details': {
+    serviceLabel: 'Chassis to RC',
+    cardKey: 'chassis-to-rc',
+    expectedBodyFields: ['chassis_number'],
+    commonBackendRisks: ['chassis mapping source missing', 'legacy source lookup timeout'],
+  },
+  '/api/fastag/tag-to-rc': {
+    serviceLabel: 'FASTag to RC',
+    cardKey: 'fastag-to-rc',
+    expectedBodyFields: ['tag_id'],
+    commonBackendRisks: ['FASTag bridge API unavailable', 'tag not found in provider'],
+  },
+  '/api/fastag/rc-to-tag': {
+    serviceLabel: 'RC to FASTag',
+    cardKey: 'rc-to-fastag',
+    expectedBodyFields: ['rc_number'],
+    commonBackendRisks: ['FASTag source latency spikes', 'vehicle not linked to FASTag'],
+  },
+  '/api/fampay/upi-to-mobile': {
+    serviceLabel: 'FamPay UPI to Mobile',
+    cardKey: 'fampay-upi-to-mobile',
+    expectedBodyFields: ['fam_id'],
+    commonBackendRisks: ['FamPay source unavailable', 'UPI handle not recognized by provider'],
+  },
+  '/api/prefill/prefill-by-mobile': {
+    serviceLabel: 'Mobile Intelligence',
+    cardKey: 'mobile-intelligence',
+    expectedBodyFields: ['mobile'],
+    commonBackendRisks: ['prefill engine timeout', 'insufficient provider coverage for number'],
+  },
+  '/api/address/mobile-to-address': {
+    serviceLabel: 'Mobile to Address',
+    cardKey: 'mobile-to-address-enhanced',
+    expectedBodyFields: ['mobile'],
+    commonBackendRisks: ['address provider partial outage', 'backend transformer mismatch'],
+  },
+  '/api/voter-id/voter-id-info': {
+    serviceLabel: 'Voter ID Text',
+    cardKey: 'voter-id-text',
+    expectedBodyFields: ['id_number'],
+    commonBackendRisks: ['electoral source unavailable', 'id format rejected by backend validator'],
+  },
+  '/api/income/mobile-to-uan': {
+    serviceLabel: 'Mobile to UAN',
+    cardKey: 'mobile-to-uan',
+    expectedBodyFields: ['mobile_number'],
+    commonBackendRisks: ['employment source unavailable', 'mobile not mapped to UAN'],
+  },
+  '/api/income/uan-to-employment-history': {
+    serviceLabel: 'UAN Employment History V2',
+    cardKey: 'uan-employment-history',
+    expectedBodyFields: ['id_number'],
+    commonBackendRisks: ['employment-history provider timeout', 'EPFO data unavailable for UAN'],
+  },
+  '/api/pan/pan-to-uan': {
+    serviceLabel: 'PAN to UAN',
+    cardKey: 'pan-to-uan',
+    expectedBodyFields: ['pan_number'],
+    commonBackendRisks: ['PAN-UAN linkage source unavailable', 'no linkage in provider'],
+  },
+  '/api/gas-connection/verify': {
+    serviceLabel: 'Mobile to GAS Connection',
+    cardKey: 'mobile-to-gas',
+    expectedBodyFields: ['mobile_number', 'provider_name'],
+    commonBackendRisks: ['provider_name validation failure', 'gas provider integration unavailable'],
+  },
+  '/api/create_razorpay_order': {
+    serviceLabel: 'Wallet Recharge - Create Order',
+    expectedBodyFields: ['amount', 'idempotency_key'],
+    commonBackendRisks: ['payment gateway key misconfiguration', 'order creation blocked by backend rule'],
+  },
+  '/api/verify_payment': {
+    serviceLabel: 'Wallet Recharge - Verify Payment',
+    expectedBodyFields: ['razorpay_payment_id', 'razorpay_order_id', 'razorpay_signature', 'amount', 'token'],
+    commonBackendRisks: ['signature verification failed at backend', 'payment verification webhook mismatch'],
+  },
+};
+
+const SENSITIVE_KEYS = ['token', 'password', 'signature', 'auth', 'authorization', 'mobile', 'aadhaar', 'pan', 'id_number', 'email', 'upi'];
+
+const createRequestId = (): string => `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+const normalizeHeaders = (input?: HeadersInit): Record<string, string> => {
+  if (!input) return {};
+
+  if (input instanceof Headers) {
+    const normalized: Record<string, string> = {};
+    input.forEach((value, key) => {
+      normalized[key] = value;
+    });
+    return normalized;
+  }
+
+  if (Array.isArray(input)) {
+    return input.reduce((acc, [key, value]) => {
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+  }
+
+  return { ...input };
+};
+
+const tryParseJson = (value: string): JsonRecord | null => {
+  try {
+    const parsed = JSON.parse(value);
+    return typeof parsed === 'object' && parsed !== null ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const maskSensitiveValue = (key: string, value: any): any => {
+  const lowerKey = key.toLowerCase();
+  const shouldMask = SENSITIVE_KEYS.some(sensitiveKey => lowerKey.includes(sensitiveKey));
+
+  if (!shouldMask) {
+    if (Array.isArray(value)) {
+      return value.map(item => (typeof item === 'object' && item !== null ? maskSensitiveObject(item) : item));
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      return maskSensitiveObject(value as JsonRecord);
+    }
+
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    if (value.length <= 4) return '****';
+    return `${value.slice(0, 2)}****${value.slice(-2)}`;
+  }
+
+  return '[REDACTED]';
+};
+
+const maskSensitiveObject = (obj: JsonRecord): JsonRecord => {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    acc[key] = maskSensitiveValue(key, value);
+    return acc;
+  }, {} as JsonRecord);
+};
+
+const extractRequestPayload = (body?: BodyInit | null): JsonRecord | string | undefined => {
+  if (!body) return undefined;
+  if (typeof body === 'string') {
+    return tryParseJson(body) ?? body;
+  }
+  return '[non-json request body]';
+};
+
+const getEndpointProfile = (endpoint: string): EndpointDiagnosticProfile => {
+  return ENDPOINT_DIAGNOSTICS[endpoint] || {
+    serviceLabel: endpoint,
+    commonBackendRisks: ['Endpoint-specific diagnostics not configured for this API'],
+  };
+};
+
+const buildBackendDiagnosis = (
+  endpoint: string,
+  method: string,
+  status: number | undefined,
+  requestPayload: JsonRecord | string | undefined,
+  responseData?: any,
+  extraContext?: string
+): BackendDiagnosis => {
+  const profile = getEndpointProfile(endpoint);
+  const probableCauses = new Set<string>(profile.commonBackendRisks);
+  const immediateActions = new Set<string>();
+  let likelyOwner: BackendDiagnosis['likelyOwner'] = 'mixed';
+
+  const payloadObj = typeof requestPayload === 'object' && requestPayload !== null && !Array.isArray(requestPayload)
+    ? requestPayload
+    : undefined;
+
+  if (profile.expectedBodyFields && method !== 'GET' && payloadObj) {
+    const missingFields = profile.expectedBodyFields.filter(field => !(field in payloadObj));
+    if (missingFields.length > 0) {
+      probableCauses.add(`Request body missing expected fields: ${missingFields.join(', ')}`);
+      immediateActions.add(`Fix frontend payload mapping for ${profile.serviceLabel}: include ${missingFields.join(', ')}`);
+      likelyOwner = 'frontend';
+    }
+  }
+
+  const errorMessage = String(responseData?.error || responseData?.message || extraContext || '').toLowerCase();
+  const messageCode = String(responseData?.message_code || '').toLowerCase();
+
+  if (status === 400) {
+    probableCauses.add('Backend validation rejected request payload');
+    immediateActions.add('Inspect backend validation error payload and align frontend field format');
+    likelyOwner = likelyOwner === 'frontend' ? 'frontend' : 'mixed';
+  }
+
+  if (status === 401) {
+    probableCauses.add('Token missing, expired, or invalid at backend auth layer');
+    immediateActions.add('Re-authenticate and verify token forwarding in Authorization header');
+    likelyOwner = 'mixed';
+  }
+
+  if (status === 403) {
+    probableCauses.add('User/company lacks permission or premium entitlement for this endpoint');
+    immediateActions.add('Check backend entitlement flags, account activation, and RBAC policy for this user');
+    likelyOwner = 'backend';
+  }
+
+  if (status === 404) {
+    probableCauses.add('Route missing on deployed backend or incorrect API prefix/version');
+    immediateActions.add('Confirm backend deployment includes this route and gateway path rewrite is correct');
+    likelyOwner = 'backend';
+  }
+
+  if (status === 429) {
+    probableCauses.add('Rate limit reached in backend gateway or upstream provider');
+    immediateActions.add('Apply retry with backoff and check provider quota usage');
+    likelyOwner = 'backend';
+  }
+
+  if (status === 500) {
+    probableCauses.add('Unhandled backend exception during service orchestration');
+    immediateActions.add('Check backend logs with request trace and fix failing code path');
+    likelyOwner = 'backend';
+  }
+
+  if (status === 502 || status === 503 || status === 504) {
+    probableCauses.add('Upstream provider/network timeout while backend attempted lookup');
+    immediateActions.add('Validate upstream provider health and increase timeout/circuit-breaker configuration if needed');
+    likelyOwner = 'network';
+  }
+
+  if (messageCode === 'verification_failed' || errorMessage.includes('verification failed')) {
+    probableCauses.add('Provider returned no matching record for supplied identifier');
+    immediateActions.add('Re-check identifier format and verify data availability in provider source');
+  }
+
+  if (errorMessage.includes('has no attribute') || errorMessage.includes('object has no attribute')) {
+    probableCauses.add('Backend model/schema mismatch or missing property mapping');
+    immediateActions.add('Patch backend serializer/model to include required attribute and redeploy');
+    likelyOwner = 'backend';
+  }
+
+  if (errorMessage.includes('forbidden') || errorMessage.includes('not active')) {
+    probableCauses.add('Backend account/company activation prerequisite not satisfied');
+    immediateActions.add('Enable company-level access for this endpoint in backend admin settings');
+    likelyOwner = 'backend';
+  }
+
+  if (extraContext?.toLowerCase().includes('non-json')) {
+    probableCauses.add('Gateway/reverse-proxy returned HTML (likely 404/5xx page) instead of API JSON');
+    immediateActions.add('Check API base URL, ingress route, and proxy target for this environment');
+    likelyOwner = 'network';
+  }
+
+  if (likelyOwner === 'mixed' && status && status >= 500) {
+    likelyOwner = 'backend';
+  }
+
+  return {
+    probableCauses: [...probableCauses],
+    immediateActions: [...immediateActions],
+    likelyOwner,
+  };
+};
+
 // Helper to get auth token from localStorage
 export const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
@@ -28,10 +417,15 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const token = getAuthToken();
+  const requestId = createRequestId();
+  const requestStart = performance.now();
+  const method = options.method || 'GET';
+  const endpointProfile = getEndpointProfile(endpoint);
+  const requestPayload = extractRequestPayload(options.body);
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...normalizeHeaders(options.headers),
   };
 
   // Don't send Authorization header for login/register endpoints
@@ -43,19 +437,35 @@ async function apiRequest<T>(
     headers['Authorization'] = `Token ${token}`;
   }
 
-  // Debug logging
-  console.log('🔍 API Request:', {
+  console.groupCollapsed(`🚀 [API][${requestId}] ${method} ${endpoint}`);
+  console.log('📌 Service Context:', {
+    requestId,
+    serviceLabel: endpointProfile.serviceLabel,
+    cardKey: endpointProfile.cardKey || 'N/A',
     url: `${BASE_URL}${endpoint}`,
-    method: options.method || 'GET',
-    body: options.body,
+    method,
+    hasAuthToken: !!token,
+    expectedBodyFields: endpointProfile.expectedBodyFields || [],
+    requestPayload: typeof requestPayload === 'object' && requestPayload !== null
+      ? maskSensitiveObject(requestPayload as JsonRecord)
+      : requestPayload,
     headers: { ...headers, Authorization: token ? '[REDACTED]' : 'none' },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
+  console.groupEnd();
 
   try {
     // Create an AbortController for timeout handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout (increased for slower verification APIs)
+
+    if (options.signal) {
+      if (options.signal.aborted) {
+        controller.abort();
+      } else {
+        options.signal.addEventListener('abort', () => controller.abort(), { once: true });
+      }
+    }
 
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
@@ -74,33 +484,77 @@ async function apiRequest<T>(
     } else {
       // Non-JSON response (e.g., HTML error page)
       const text = await response.text();
-      console.error('❌ Non-JSON response received:', {
+      const diagnosis = buildBackendDiagnosis(
+        endpoint,
+        method,
+        response.status,
+        requestPayload,
+        undefined,
+        `non-json response: ${text.substring(0, 120)}`
+      );
+
+      console.groupCollapsed(`❌ [API][${requestId}] Non-JSON response`);
+      console.error('🚨 Response Format Mismatch:', {
+        requestId,
         status: response.status,
         contentType,
-        bodyPreview: text.substring(0, 200)
+        bodyPreview: text.substring(0, 200),
+        backendDiagnosis: diagnosis,
       });
-      throw new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 100)}`);
+      console.groupEnd();
+
+      const nonJsonError = new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 100)}`) as ApiClientError;
+      nonJsonError.requestId = requestId;
+      nonJsonError.endpoint = endpoint;
+      nonJsonError.method = method;
+      nonJsonError.status = response.status;
+      nonJsonError.backendDiagnosis = diagnosis;
+      throw nonJsonError;
     }
 
-    // Debug logging
-    console.log('📥 API Response:', {
+    const durationMs = Math.round(performance.now() - requestStart);
+
+    console.groupCollapsed(`📥 [API][${requestId}] Response received (${durationMs}ms)`);
+    console.log('✅ Response Summary:', {
+      requestId,
       status: response.status,
       ok: response.ok,
-      data,
-      timestamp: new Date().toISOString()
+      endpoint,
+      serviceLabel: endpointProfile.serviceLabel,
+      messageCode: data?.message_code,
+      hasSuccessFlag: typeof data?.success !== 'undefined',
+      success: data?.success,
+      hasData: !!data?.data,
+      dataKeys: data?.data ? Object.keys(data.data) : [],
+      creditDetails: data?.credit_details,
+      timestamp: new Date().toISOString(),
     });
+    console.groupEnd();
 
     // Handle errors
     if (!response.ok) {
+      const diagnosis = buildBackendDiagnosis(endpoint, method, response.status, requestPayload, data);
+
       // Enhanced error logging for production debugging
-      console.error('❌ API Error Response:', {
+      console.groupCollapsed(`❌ [API][${requestId}] Error response (${response.status})`);
+      console.error('🚨 API Error Diagnostics:', {
+        requestId,
+        serviceLabel: endpointProfile.serviceLabel,
         status: response.status,
         statusText: response.statusText,
         endpoint,
+        method,
         error: data.error || data,
         message_code: data.message_code,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
+      console.error('🧭 Potential Backend Root Cause Analysis:', {
+        requestId,
+        likelyOwner: diagnosis.likelyOwner,
+        probableCauses: diagnosis.probableCauses,
+        immediateActions: diagnosis.immediateActions,
+      });
+      console.groupEnd();
       
       // Provide more specific error messages based on error type
       let errorMessage = data.error || data.message || 'Something went wrong';
@@ -139,28 +593,61 @@ async function apiRequest<T>(
         errorMessage = 'Server error - please try again later';
       }
       
-      throw new Error(errorMessage);
+      const apiError = new Error(errorMessage) as ApiClientError;
+      apiError.requestId = requestId;
+      apiError.endpoint = endpoint;
+      apiError.method = method;
+      apiError.status = response.status;
+      apiError.backendDiagnosis = diagnosis;
+      throw apiError;
     }
 
     return data;
   } catch (fetchError: any) {
     // Handle abort/timeout errors
     if (fetchError.name === 'AbortError') {
-      console.error('⏱️ Request Timeout:', {
+      const diagnosis = buildBackendDiagnosis(endpoint, method, 504, requestPayload, undefined, 'request timeout');
+      console.groupCollapsed(`⏱️ [API][${requestId}] Request timeout`);
+      console.error('⏱️ Timeout Diagnostics:', {
+        requestId,
+        serviceLabel: endpointProfile.serviceLabel,
         endpoint,
-        timeout: '25s',
-        timestamp: new Date().toISOString()
+        timeout: '60s',
+        timestamp: new Date().toISOString(),
+        backendDiagnosis: diagnosis,
       });
-      throw new Error('Request Timeout - The verification service is taking too long to respond. Please try again in a moment.');
+      console.groupEnd();
+
+      const timeoutError = new Error('Request Timeout - The verification service is taking too long to respond. Please try again in a moment.') as ApiClientError;
+      timeoutError.requestId = requestId;
+      timeoutError.endpoint = endpoint;
+      timeoutError.method = method;
+      timeoutError.status = 504;
+      timeoutError.backendDiagnosis = diagnosis;
+      throw timeoutError;
     }
     
     // Network or parsing errors
+    const diagnosis = buildBackendDiagnosis(endpoint, method, undefined, requestPayload, undefined, fetchError?.message);
+    console.groupCollapsed(`❌ [API][${requestId}] Request failed before response`);
     console.error('❌ API Request Failed:', {
+      requestId,
+      serviceLabel: endpointProfile.serviceLabel,
       endpoint,
       error: fetchError.message,
       stack: fetchError.stack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      backendDiagnosis: diagnosis,
     });
+    console.groupEnd();
+
+    if (typeof fetchError === 'object' && fetchError) {
+      (fetchError as ApiClientError).requestId = (fetchError as ApiClientError).requestId || requestId;
+      (fetchError as ApiClientError).endpoint = (fetchError as ApiClientError).endpoint || endpoint;
+      (fetchError as ApiClientError).method = (fetchError as ApiClientError).method || method;
+      (fetchError as ApiClientError).backendDiagnosis = (fetchError as ApiClientError).backendDiagnosis || diagnosis;
+    }
+
     throw fetchError;
   }
 }
@@ -789,7 +1276,8 @@ export const verifyGSTINByPAN = async (
 
   return apiRequest<GenericVerificationResponse>('/api/gstin/search-by-pan', {
     method: 'POST',
-    body: JSON.stringify({ pan_number: panNumber }),
+    // Backend contract expects `pan` (not `pan_number`)
+    body: JSON.stringify({ pan: panNumber }),
   });
 };
 
@@ -816,7 +1304,7 @@ export const verifyRCToFASTag = async (
 
     const response = await apiRequest<GenericVerificationResponse>('/api/fastag/rc-to-tag', {
       method: 'POST',
-      body: JSON.stringify({ id_number: rcNumber }),
+      body: JSON.stringify({ rc_number: rcNumber }),
       signal: controller.signal,
     });
 

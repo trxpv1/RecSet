@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag, verifyMobileToMultipleUPI, verifyChassisToRCDetails, verifyVoterIDText, verifyCINToPAN, verifyMobileToUAN, verifyUANToEmploymentHistory, verifyPANToUAN, verifyRCOwnerHistory, verifyMobileToGAS, verifyMobileToPAN, verifyUPIToBankDetails, verifyMobileToAddressEnhanced, getUserLogs, getHealthStatus, type UserLog, type LogsResponse, type HealthCheckResponse } from "@/lib/apiClient";
+import { verifyPANComprehensive, verifyCorporateDIN, verifyDirectorPhone, verifyGSTINAdvanced, verifyBankByMobile, verifyRCFull, verifyRCToMobile, verifyChassisToRC, verifyMobileToRC, verifyFASTagToRC, verifyVoterID, verifyDrivingLicense, verifyMobileIntelligence, verifyMobileToAddress, verifyAadhaarFamilyMembers, verifyFamPayUPIToMobile, verifyGSTINByCompanyName, verifyGSTINByPAN, verifyRCToFASTag, verifyMobileToMultipleUPI, verifyChassisToRCDetails, verifyVoterIDText, verifyCINToPAN, verifyMobileToUAN, verifyUANToEmploymentHistory, verifyPANToUAN, verifyRCOwnerHistory, verifyMobileToGAS, verifyMobileToPAN, verifyUPIToBankDetails, verifyMobileToAddressEnhanced, getUserLogs, getHealthStatus, type UserLog, type LogsResponse, type HealthCheckResponse, type ApiClientError } from "@/lib/apiClient";
 import { generatePDFReport } from "@/lib/pdfGenerator";
 import {
   Search,
@@ -134,6 +134,79 @@ const getInputHint = (verificationValue: string): { placeholder: string; hint?: 
   };
   
   return hintMap[verificationValue] || { placeholder: 'Enter verification details', hint: 'Provide the required information' };
+};
+
+const VERIFICATION_ENDPOINT_MAP: Record<string, string> = {
+  'pan-info': '/api/pan/pan-comprehensive',
+  'aadhar-family-tree': '/api/aadhaar/family-members',
+  'driving-license': '/api/driving-license/driving-license',
+  'din-lookup': '/api/corporate/din',
+  'director-phone': '/api/corporate/director-phone',
+  'gstin-advanced': '/api/corporate/gstin-advanced',
+  'bank-verification-mobile': '/api/bank-verification/bank-verification-mobile',
+  'rc-full': '/api/rc/rc-full',
+  'rc-owner-history': '/api/rc/rc-owner-history',
+  'rc-to-mobile': '/api/rc/rc-to-mobile-number',
+  'mobile-to-rc': '/api/rc/mobile-number-to-rc',
+  'fastag-to-rc': '/api/fastag/tag-to-rc',
+  'rc-to-fastag': '/api/fastag/rc-to-tag',
+  'fampay-upi-to-mobile': '/api/fampay/upi-to-mobile',
+  'gstin-by-company-name': '/api/gstin/search-by-company-name',
+  'gstin-by-pan': '/api/gstin/search-by-pan',
+  'mobile-intelligence': '/api/prefill/prefill-by-mobile',
+  'mobile-to-multiple-upi': '/api/bank-verification/mobile-to-multiple-upi',
+  'chassis-to-rc': '/api/rc/chassis-to-rc-details',
+  'voter-id-text': '/api/voter-id/voter-id-info',
+  'cin-to-pan': '/api/corporate/cin-to-pan',
+  'mobile-to-uan': '/api/income/mobile-to-uan',
+  'uan-employment-history': '/api/income/uan-to-employment-history',
+  'pan-to-uan': '/api/pan/pan-to-uan',
+  'mobile-to-gas': '/api/gas-connection/verify',
+  'mobile-to-pan': '/api/bank-verification/mobile-to-pan',
+  'upi-to-bank-details': '/api/bank-verification/upi-to-bank-details',
+  'mobile-to-address-enhanced': '/api/address/mobile-to-address',
+};
+
+const maskForCardLogs = (value: string): string => {
+  if (!value) return '';
+  if (value.length <= 4) return '****';
+  return `${value.slice(0, 3)}****${value.slice(-2)}`;
+};
+
+const getInputFormatWarnings = (verificationValue: string, queryValue: string, dobValue?: string): string[] => {
+  const warnings: string[] = [];
+  const q = queryValue.trim();
+
+  if (!q) {
+    warnings.push('Primary input is empty.');
+    return warnings;
+  }
+
+  if (['mobile-to-rc', 'bank-verification-mobile', 'mobile-to-multiple-upi', 'mobile-to-uan', 'mobile-to-gas', 'mobile-to-pan', 'mobile-intelligence', 'mobile-to-address-enhanced'].includes(verificationValue) && !/^\d{10}$/.test(q)) {
+    warnings.push('Expected a 10-digit mobile number.');
+  }
+
+  if (['pan-info', 'pan-to-uan', 'gstin-by-pan'].includes(verificationValue) && !/^[A-Z]{5}[0-9]{4}[A-Z]$/i.test(q)) {
+    warnings.push('PAN format should be like ABCDE1234F.');
+  }
+
+  if (verificationValue === 'gstin-advanced' && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/i.test(q)) {
+    warnings.push('GSTIN format appears invalid (expected 15 characters).');
+  }
+
+  if (verificationValue === 'driving-license' && (!dobValue || !/^\d{4}-\d{2}-\d{2}$/.test(dobValue))) {
+    warnings.push('DOB must be provided in YYYY-MM-DD format for Driving License verification.');
+  }
+
+  if (verificationValue === 'uan-employment-history' && !/^\d{12}$/.test(q)) {
+    warnings.push('UAN should be a 12-digit number.');
+  }
+
+  if (verificationValue === 'aadhar-family-tree' && !/^\d{12}$/.test(q.replace(/-/g, ''))) {
+    warnings.push('Aadhaar should be a valid 12-digit number.');
+  }
+
+  return warnings;
 };
 
 interface User {
@@ -550,8 +623,23 @@ export default function Dashboard() {
   };
 
   const handleScanNow = (verification: any) => {
+    const serviceHealth = isServiceWorking(verification.value);
+    console.groupCollapsed(`🧪 [CARD] Scan initiated: ${verification.label}`);
+    console.log('📌 Card context:', {
+      verificationValue: verification.value,
+      label: verification.label,
+      category: activeCategory,
+      creditsRequired: verification.credits,
+      availableCredits: credits,
+      endpoint: VERIFICATION_ENDPOINT_MAP[verification.value] || 'N/A',
+      healthStatus: serviceHealth === null ? 'unknown' : (serviceHealth ? 'healthy' : 'degraded'),
+      timestamp: new Date().toISOString(),
+    });
+
     // Check if feature is coming soon
     if (verification.comingSoon) {
+      console.warn('⚠️ Card blocked: feature marked as comingSoon');
+      console.groupEnd();
       setErrorDialog({
         show: true,
         title: 'Feature Coming Soon',
@@ -562,6 +650,11 @@ export default function Dashboard() {
     }
     
     if (credits < verification.credits) {
+      console.warn('⚠️ Card blocked: insufficient credits', {
+        requiredCredits: verification.credits,
+        currentCredits: credits,
+      });
+      console.groupEnd();
       setErrorDialog({
         show: true,
         title: '💳 Insufficient Credits',
@@ -570,6 +663,9 @@ export default function Dashboard() {
       });
       return;
     }
+
+    console.log('✅ Card open allowed. Query modal will be displayed.');
+    console.groupEnd();
     setSelectedVerification(verification);
     setShowQueryModal(true);
     setQuery("");
@@ -579,6 +675,29 @@ export default function Dashboard() {
   const handleVerification = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query || !selectedVerification) return;
+
+    const runId = `card_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const endpoint = VERIFICATION_ENDPOINT_MAP[selectedVerification.value] || 'N/A';
+    const formatWarnings = getInputFormatWarnings(selectedVerification.value, query, dob);
+
+    console.groupCollapsed(`🚀 [CARD-RUN][${runId}] ${selectedVerification.label}`);
+    console.log('📌 Verification execution context:', {
+      runId,
+      verificationValue: selectedVerification.value,
+      label: selectedVerification.label,
+      endpoint,
+      queryMasked: maskForCardLogs(query.trim()),
+      dobProvided: !!dob,
+      gasProvider: selectedVerification.value === 'mobile-to-gas' ? gasProvider : undefined,
+      creditsRequired: selectedVerification.credits,
+      availableCredits: credits,
+      apiHealth: isServiceWorking(selectedVerification.value),
+      timestamp: new Date().toISOString(),
+    });
+
+    if (formatWarnings.length > 0) {
+      console.warn('⚠️ Input-format warnings before API call:', formatWarnings);
+    }
 
     setIsSearching(true);
     
@@ -709,6 +828,7 @@ export default function Dashboard() {
       }
 
       console.log('✅ Verification response received:', {
+        runId,
         success: response.success,
         hasData: !!response.data,
         creditsDeducted: response.credit_details?.user_price_deducted,
@@ -758,13 +878,20 @@ export default function Dashboard() {
       setGasProvider("Indane");
 
       console.log('✅ Verification completed successfully');
+      console.groupEnd();
 
     } catch (error: any) {
       clearTimeout(slowRequestToast); // Clear the slow request toast on error
+      const apiError = error as ApiClientError;
       
       console.error('❌ Verification failed:', {
+        runId,
         error: error.message,
         type: selectedVerification.value,
+        endpoint,
+        requestId: apiError?.requestId,
+        status: apiError?.status,
+        backendDiagnosis: apiError?.backendDiagnosis,
         timestamp: new Date().toISOString(),
       });
       
@@ -819,6 +946,23 @@ export default function Dashboard() {
       } else if (error.message) {
         errorMessage = error.message;
       }
+
+      if (apiError?.backendDiagnosis?.probableCauses?.length) {
+        const topCause = apiError.backendDiagnosis.probableCauses[0];
+        const topAction = apiError.backendDiagnosis.immediateActions?.[0];
+
+        console.error('🧭 Backend-focused quick diagnosis for instant triage:', {
+          runId,
+          requestId: apiError.requestId,
+          likelyOwner: apiError.backendDiagnosis.likelyOwner,
+          probableCauses: apiError.backendDiagnosis.probableCauses,
+          immediateActions: apiError.backendDiagnosis.immediateActions,
+        });
+
+        if (errorType === 'error') {
+          errorMessage = `${errorMessage}\n\n🧭 Potential backend reason:\n• ${topCause}${topAction ? `\n\n⚡ Fastest next action:\n• ${topAction}` : ''}${apiError.requestId ? `\n\n🆔 Trace ID: ${apiError.requestId}` : ''}`;
+        }
+      }
       
       setErrorDialog({
         show: true,
@@ -832,6 +976,7 @@ export default function Dashboard() {
       setQuery("");
       setDob("");
       setGasProvider("Indane");
+      console.groupEnd();
     }
   };
 
