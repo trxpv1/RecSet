@@ -244,6 +244,24 @@ const tryParseJson = (value: string): JsonRecord | null => {
   }
 };
 
+const normalizeErrorText = (value: any): string => {
+  if (typeof value === 'string') return value;
+  if (value === null || value === undefined) return '';
+
+  if (typeof value === 'object') {
+    if (typeof value.error === 'string') return value.error;
+    if (typeof value.message === 'string') return value.message;
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
+  return String(value);
+};
+
 const maskSensitiveValue = (key: string, value: any): any => {
   const lowerKey = key.toLowerCase();
   const shouldMask = SENSITIVE_KEYS.some(sensitiveKey => lowerKey.includes(sensitiveKey));
@@ -557,21 +575,22 @@ async function apiRequest<T>(
       console.groupEnd();
       
       // Provide more specific error messages based on error type
-      let errorMessage = data.error || data.message || 'Something went wrong';
+      let errorMessage = normalizeErrorText(data.error || data.message || 'Something went wrong');
+      const normalizedErrorLower = errorMessage.toLowerCase();
       
       // Check if it's a "verification failed" error (typically means no data found)
-      if (data.message_code === 'verification_failed' || errorMessage.toLowerCase().includes('verification failed')) {
+      if (data.message_code === 'verification_failed' || normalizedErrorLower.includes('verification failed')) {
         errorMessage = 'Verification Failed';
-      } else if (response.status === 403 || errorMessage.toLowerCase().includes('forbidden')) {
+      } else if (response.status === 403 || normalizedErrorLower.includes('forbidden')) {
         // For 403 errors, use the actual server message if available (e.g., "Account not active")
         // Provide specific guidance for restricted API endpoints
         if (!data.error && !data.message) {
           errorMessage = 'Forbidden Access - This API requires account activation or special permissions. Please contact support to enable this feature.';
-        } else if (data.error && data.error.toLowerCase().includes('company')) {
+        } else if (normalizeErrorText(data.error).toLowerCase().includes('company')) {
           errorMessage = 'Account Setup Required - Your account needs additional configuration. Please contact support to activate premium features.';
         }
         // Otherwise keep the original errorMessage from the server
-      } else if (response.status === 504 || errorMessage.toLowerCase().includes('timed out')) {
+      } else if (response.status === 504 || normalizedErrorLower.includes('timed out')) {
         errorMessage = 'Request Timeout - The verification service is taking too long to respond';
       } else if (response.status === 404) {
         // Special handling for forgot password endpoint
@@ -628,13 +647,14 @@ async function apiRequest<T>(
     }
     
     // Network or parsing errors
-    const diagnosis = buildBackendDiagnosis(endpoint, method, undefined, requestPayload, undefined, fetchError?.message);
+      const message = normalizeErrorText(fetchError?.message || fetchError);
+      const diagnosis = buildBackendDiagnosis(endpoint, method, undefined, requestPayload, undefined, message);
     console.groupCollapsed(`❌ [API][${requestId}] Request failed before response`);
     console.error('❌ API Request Failed:', {
       requestId,
       serviceLabel: endpointProfile.serviceLabel,
       endpoint,
-      error: fetchError.message,
+      error: message,
       stack: fetchError.stack,
       timestamp: new Date().toISOString(),
       backendDiagnosis: diagnosis,
@@ -646,9 +666,15 @@ async function apiRequest<T>(
       (fetchError as ApiClientError).endpoint = (fetchError as ApiClientError).endpoint || endpoint;
       (fetchError as ApiClientError).method = (fetchError as ApiClientError).method || method;
       (fetchError as ApiClientError).backendDiagnosis = (fetchError as ApiClientError).backendDiagnosis || diagnosis;
+      throw fetchError;
     }
 
-    throw fetchError;
+    const normalizedError = new Error(message || 'Unknown API request failure') as ApiClientError;
+    normalizedError.requestId = requestId;
+    normalizedError.endpoint = endpoint;
+    normalizedError.method = method;
+    normalizedError.backendDiagnosis = diagnosis;
+    throw normalizedError;
   }
 }
 
@@ -1522,6 +1548,17 @@ export interface HealthCheckResponse {
 }
 
 export const getHealthStatus = async (): Promise<HealthCheckResponse> => {
+  const healthRequestId = createRequestId();
+  const start = performance.now();
+
+  console.groupCollapsed(`🩺 [HEALTH][${healthRequestId}] GET /api/health/`);
+  console.log('📌 Health request context:', {
+    requestId: healthRequestId,
+    url: `${BASE_URL}/api/health/`,
+    timestamp: new Date().toISOString(),
+  });
+  console.groupEnd();
+
   try {
     const response = await fetch(`${BASE_URL}/api/health/`, {
       method: 'GET',
@@ -1529,8 +1566,19 @@ export const getHealthStatus = async (): Promise<HealthCheckResponse> => {
         'Content-Type': 'application/json',
       },
     });
+
+    if (!response.ok) {
+      throw new Error(`Health endpoint returned ${response.status}`);
+    }
     
     const data = await response.json();
+    const elapsed = Math.round(performance.now() - start);
+
+    console.log(`✅ [HEALTH][${healthRequestId}] Response (${elapsed}ms):`, {
+      status: data?.status,
+      message: data?.message,
+      apisCount: Array.isArray(data?.apis) ? data.apis.length : 0,
+    });
     
     // Handle different response formats
     if (data.status === 'ok') {
@@ -1543,7 +1591,10 @@ export const getHealthStatus = async (): Promise<HealthCheckResponse> => {
       return { status: 'ok', message: 'System operational' };
     }
   } catch (error) {
-    console.error('Health check failed:', error);
+    console.error(`❌ [HEALTH][${healthRequestId}] Health check failed:`, {
+      error: normalizeErrorText((error as Error)?.message || error),
+      timestamp: new Date().toISOString(),
+    });
     return { status: 'down', message: 'Unable to check system health', apis: [] };
   }
 };

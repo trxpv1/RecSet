@@ -1,4 +1,4 @@
-# Error Handling Guide
+  # Error Handling Guide
 
 ## Overview
 The application now uses a design-compliant error dialog system that provides clear, user-friendly error messages.

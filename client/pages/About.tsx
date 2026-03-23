@@ -146,9 +146,9 @@ export default function About() {
               <Link to="/contact">
                 <Button size="lg">Request Access</Button>
               </Link>
-              <Link to="/pilot">
+              {/* <Link to="/pilot">
                 <Button size="lg" variant="outline">Pilot Program</Button>
-              </Link>
+              </Link> */}
             </div>
           </div>
         </article>

@@ -113,7 +113,7 @@ const getInputHint = (verificationValue: string): { placeholder: string; hint?: 
     'mobile-to-rc': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
     'fastag-to-rc': { placeholder: 'e.g., TAG1234567890', hint: 'Enter FASTag number' },
     'rc-to-fastag': { placeholder: 'e.g., DL01AB1234', hint: 'Enter vehicle registration number' },
-    'driving-license': { placeholder: 'e.g., DL-0123456789012', hint: 'Enter license number and DOB (YYYY-MM-DD format)' },
+    'driving-license': { placeholder: 'e.g., DL0123456789012', hint: '' },
     'bank-verification-mobile': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
     'mobile-to-multiple-upi': { placeholder: 'e.g., 9876543210', hint: 'Enter 10-digit mobile number' },
     'fampay-upi-to-mobile': { placeholder: 'e.g., user@fampay', hint: 'Enter FamPay UPI ID' },
@@ -233,7 +233,7 @@ const VERIFICATION_CATEGORIES = {
     bgColor: "bg-primary",
     items: [
       // { value: "aadhar-search", label: "Aadhar Search", credits: 2, comingSoon: true },
-      { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 50, comingSoon: false, description: "Map related individuals linked through Aadhaar references." },
+      { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 5, comingSoon: false, description: "Map related individuals linked through Aadhaar references." },
       { value: "pan-info", label: "PAN Details", credits: 7, comingSoon: false, description: "Retrieve basic PAN profile and identity metadata." },
       { value: "voter-id-text", label: "Voter ID Text", credits: 10, comingSoon: false, description: "Access voter registration and electoral roll information." },
       { value: "mobile-to-pan", label: "Mobile Number to PAN Card", credits: 8, comingSoon: false, description: "Retrieve PAN card details linked to a mobile number." },
@@ -1621,7 +1621,7 @@ export default function Dashboard() {
                     <div className="relative">
                       <Input
                         id="dob"
-                        type="text"
+                        type="date"
                         placeholder="YYYY-MM-DD (e.g., 1990-01-15)"
                         value={dob}
                         onChange={(e) => {
@@ -1631,7 +1631,7 @@ export default function Dashboard() {
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Enter date in YYYY-MM-DD format (e.g., 1990-01-15 for 15 Jan 1990)
+                      {/* Enter date in YYYY-MM-DD format (e.g., 1990-01-15 for 15 Jan 1990) */}
                     </p>
                   </div>
                 </>
@@ -1676,7 +1676,9 @@ export default function Dashboard() {
 
               <Button
                 type="submit"
-                disabled={isSearching || !query || (selectedVerification.value === 'driving-license' && (!dob || dob.length !== 8))}
+                // disabled={isSearching || !query || (selectedVerification.value === 'driving-license' && (!dob || dob.length !== 8))}
+                disabled={isSearching || !query || (selectedVerification.value === 'driving-license' && (!dob))}
+
                 className="w-full gap-2"
                 size="lg"
               >

@@ -107,8 +107,7 @@ A unified investigation suite for Law Enforcement Agencies.                </p>
               Powerful Features for Investigators  
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to verify government records and manage your
-              verification credits
+              Due Diligence Suite for Investigators - Secure, Instant, and Compliance-Ready Government Record Verification
             </p>
           </div>
 
