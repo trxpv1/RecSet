@@ -233,7 +233,7 @@ const VERIFICATION_CATEGORIES = {
     bgColor: "bg-primary",
     items: [
       // { value: "aadhar-search", label: "Aadhar Search", credits: 2, comingSoon: true },
-      { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 5, comingSoon: false, description: "Map related individuals linked through Aadhaar references." },
+      { value: "aadhar-family-tree", label: "Aadhar Family Tree", credits: 20, comingSoon: false, description: "Map related individuals linked through Aadhaar references." },
       { value: "pan-info", label: "PAN Details", credits: 7, comingSoon: false, description: "Retrieve basic PAN profile and identity metadata." },
       { value: "voter-id-text", label: "Voter ID Text", credits: 10, comingSoon: false, description: "Access voter registration and electoral roll information." },
       { value: "mobile-to-pan", label: "Mobile Number to PAN Card", credits: 8, comingSoon: false, description: "Retrieve PAN card details linked to a mobile number." },
@@ -269,7 +269,7 @@ const VERIFICATION_CATEGORIES = {
       { value: "fampay-upi-to-mobile", label: "FamPay UPI to Mobile", credits: 9, comingSoon: false, description: "Trace mobile numbers linked to FamPay UPI handles." },
       { value: "upi-to-bank-details", label: "UPI to Bank Details", credits: 12, comingSoon: false, description: "Retrieve complete bank account details from UPI ID." },
       { value: "gstin-by-company-name", label: "Company Name to GSTIN 🔒 Premium", credits: 15, comingSoon: false, description: "Search GST registrations by company name. (Requires account activation - Contact support)" },
-      { value: "gstin-by-pan", label: "PAN to All GST", credits: 5, comingSoon: false, description: "List GST registrations associated with a PAN." },
+      { value: "gstin-by-pan", label: "PAN to All GST", credits: 5, comingSoon: false, description: "List GST registrations associated with a Proprietorship associated PAN." },
       // { value: "phone-to-bank", label: "Phone to Bank", credits: 3, comingSoon: true },
       // { value: "bank-validation", label: "Bank Validation", credits: 2, comingSoon: true },
       // { value: "bank-ifsc", label: "Bank IFSC", credits: 1, comingSoon: true },
