@@ -80,8 +80,8 @@ export default function Contact() {
                 <Phone className="w-5 h-5 text-secondary" />
               </div>
               <h3 className="font-semibold text-foreground">Support</h3>
-              <a href="https://wa.me/+919303556894" className="text-secondary hover:text-secondary/80 transition">
-                +91 9303556894
+              <a href="https://wa.me/+917975637210" className="text-secondary hover:text-secondary/80 transition">
+                +91 917975637210
               </a>
             </div> */}
 

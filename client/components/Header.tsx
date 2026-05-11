@@ -118,7 +118,7 @@ export default function Header({
 
                 {/* WhatsApp Contact Button */}
                 <a
-                  href="https://wa.me/919876543210?text=Hello%2C%20I%20need%20help%20with%20Recordsetu"
+                  href="https://wa.me/917975637210?text=Hello%2C%20I%20need%20help%20with%20Recordsetu"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center w-10 h-10 hover:opacity-80 transition-opacity"
@@ -232,7 +232,7 @@ export default function Header({
                   </div>
 
                   <a
-                    href="https://wa.me/919876543210?text=Hello%2C%20I%20need%20help%20with%20Recordsetu"
+                    href="https://wa.me/917975637210?text=Hello%2C%20I%20need%20help%20with%20Recordsetu"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block"
